@@ -73,7 +73,7 @@ void read_config_file(const string& config_path) {
     string periodic_output = get_attribute(node, "periodic", "False");
     string periodic_input = get_attribute(node, "periodicInput", "True");
     string ground = get_attribute(node, "ground", "");                  //TODO add
-    string symmetry = get_attribute(node, "symmetry", "8");             //TODO add
+    string symmetry = get_attribute(node, "symmetry", "8");
     string screenshots = get_attribute(node, "screenshots", "");        //TODO add
     string width = get_attribute(node, "width", "48");
     string height = get_attribute(node, "width", "48");
