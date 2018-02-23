@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <chrono>
 #include "matrix.hpp"
 #include "wfc.hpp"
 #include "rapidxml.hpp"
@@ -70,7 +71,7 @@ void read_config_file(const string& config_path) {
     string name = node->first_attribute("name")->value();
     string N = node->first_attribute("N")->value();
     string periodic = get_attribute(node, "periodic", "False");         //TODO add
-    string periodicInput = get_attribute(node, "periodic", "");         //TODO ad
+    string periodic_input = get_attribute(node, "periodicInput", "True");
     string ground = get_attribute(node, "ground", "");                  //TODO add
     string symmetry = get_attribute(node, "symmetry", "8");             //TODO add
     string screenshots = get_attribute(node, "screenshots", "");        //TODO add
@@ -81,10 +82,11 @@ void read_config_file(const string& config_path) {
     int width_value = stoi(width);
     int height_value = stoi(height);
     int symmetry_value = stoi(symmetry);
+    bool periodic_input_value = periodic_input == "True";
 
     cout << name << " started!" << endl;
     Matrix<Color> m = read_file("samples/" + name + ".png");
-    WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value);
+    WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value);
     bool success = wfc.run();
     if(success) {
       write_file("results/" + name + ".png", wfc.output);
@@ -94,5 +96,14 @@ void read_config_file(const string& config_path) {
 }
 
 int main() {
+
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  start = std::chrono::system_clock::now();
+
   read_config_file("samples.xml");
+
+  end = std::chrono::system_clock::now();
+  int elapsed_s = std::chrono::duration_cast<std::chrono::seconds> (end-start).count();
+  int elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds> (end-start).count();
+  std::cout << "All samples done in " << elapsed_s << "s, " << elapsed_ms % 1000 << "ms.\n";
 }

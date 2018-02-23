@@ -29,18 +29,19 @@ public:
   vector<vector<vector<vector<unsigned>>>> propagator;
 
   unsigned symmetry;
+  bool periodic_input;
   unsigned n_width;
   unsigned n_height;
 
-  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height, unsigned symmetry)
+  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height, unsigned symmetry, bool periodic_input)
     : n_width(n_width), n_height(n_height),
       input(input), output(out_width, out_height),
       wave(out_width - n_width + 1, out_height - n_height + 1),
       output_patterns(out_width - n_width + 1, out_height - n_height + 1),
       is_propagating((out_width - n_width + 1) * (out_height - n_height + 1), false),
-      symmetry(symmetry), dis(0,1)
+      symmetry(symmetry), dis(0,1), periodic_input(periodic_input)
   {
-    gen = mt19937(42);
+    gen = mt19937(6683);
     init_patterns();
     init_wave();
     init_propagator();
@@ -80,14 +81,11 @@ public:
 
   void init_patterns() {
     Matrix<T> sub_matrix = Matrix<T>(n_width, n_height);
-    for(unsigned i = 0; i<input.height - n_height + 1; i++) {
-      for(unsigned j = 0; j<input.width - n_width + 1; j++) {
-        for(unsigned ki = 0; ki<n_height; ki++) {
-          for(unsigned kj = 0; kj<n_width; kj++) {
-            sub_matrix.data[ki * n_width + kj] = input.data[(i+ki) * input.width + j+kj];
-          }
-        }
-        add_pattern_and_symmetry(sub_matrix);
+    unsigned max_i = periodic_input ? input.height : input.height - n_height + 1;
+    unsigned max_j = periodic_input ? input.width : input.width - n_width + 1;
+    for(unsigned i = 0; i < max_i; i++) {
+      for(unsigned j = 0; j < max_j; j++) {
+        add_pattern_and_symmetry(input.get_sub_matrix(i,j,n_width,n_height));
       }
     }
 
@@ -204,7 +202,6 @@ public:
       return success;
     }
 
-    vector<double> distribution = vector<double>();
     double s = 0;
     double random_value = dis(gen);
     unsigned chosen_value;

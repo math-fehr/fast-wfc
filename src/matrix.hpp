@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <ostream>
+#include "assert.h"
 
 using namespace std;
 
@@ -48,6 +49,16 @@ public:
       }
     }
     return result;
+  }
+
+  Matrix<T> get_sub_matrix(unsigned x, unsigned y, unsigned sub_width, unsigned sub_height) {
+    Matrix<T> sub_matrix = Matrix<T>(sub_width, sub_height);
+    for(unsigned ki = 0; ki < sub_height; ki++) {
+      for(unsigned kj = 0; kj < sub_width; kj++) {
+        sub_matrix.data[ki * sub_width + kj] = data[((y+ki) % height) * width + (x + kj) % width];
+      }
+    }
+    return sub_matrix;
   }
 
   bool operator==(const Matrix& m) const {
