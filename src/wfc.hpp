@@ -30,24 +30,27 @@ public:
 
   unsigned symmetry;
   bool periodic_input;
+  bool periodic_output;
   unsigned n_width;
   unsigned n_height;
 
-  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height, unsigned symmetry, bool periodic_input)
+  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height, unsigned symmetry, bool periodic_input, bool periodic_output)
     : n_width(n_width), n_height(n_height),
       input(input), output(out_width, out_height),
-      wave(out_width - n_width + 1, out_height - n_height + 1),
-      output_patterns(out_width - n_width + 1, out_height - n_height + 1),
-      is_propagating((out_width - n_width + 1) * (out_height - n_height + 1), false),
-      symmetry(symmetry), dis(0,1), periodic_input(periodic_input)
+      symmetry(symmetry), dis(0,1), periodic_input(periodic_input), periodic_output(periodic_output),
+      gen(6683)
   {
-    gen = mt19937(6683);
-    init_patterns();
-    init_wave();
-    init_propagator();
+    unsigned wave_width = periodic_output ? out_width : out_width - n_width + 1;
+    unsigned wave_height = periodic_output ? out_height : out_height - n_height + 1;
+    wave = Matrix<vector<bool>>(wave_width, wave_height);
+    output_patterns = Matrix<unsigned>(wave_width, wave_height);
+    is_propagating = vector<bool>(wave_width * wave_height, false);
   }
 
   bool run() {
+    init_patterns();
+    init_wave();
+    init_propagator();
     while(true) {
       ObserveStatus result = observe();
       if(result == failure) {
@@ -190,11 +193,19 @@ public:
         }
       }
 
-      for(unsigned y = 0; y < wave.height; y++) {
-        for(unsigned x = 0; x < wave.width; x++) {
-          for(unsigned dy = 0; dy < n_height; dy++) {
-            for(unsigned dx = 0; dx < n_width; dx++) {
-              output[y + dy + output.width * (x + dx)] = patterns[output_patterns[y + x * output_patterns.width]][dy + dx * n_width];
+      if(periodic_output) {
+        for(unsigned y = 0; y < wave.height; y++) {
+          for(unsigned x = 0; x < wave.width; x++) {
+            output[x + output.width * y] = patterns[output_patterns[x + output_patterns.width * y]][0];
+          }
+        }
+      } else {
+        for(unsigned y = 0; y < wave.height; y++) {
+          for(unsigned x = 0; x < wave.width; x++) {
+            for(unsigned dy = 0; dy < n_height; dy++) {
+              for(unsigned dx = 0; dx < n_width; dx++) {
+                output[y + dy + output.width * (x + dx)] = patterns[output_patterns[y + x * output_patterns.width]][dy + dx * n_width];
+              }
             }
           }
         }
@@ -239,13 +250,19 @@ public:
 
       for(int dx = -int(n_width) + 1; dx < int(n_width); dx++) {
         for(int dy = -int(n_height) + 1; dy < int(n_height); dy++) {
-          int x2 = x1 + dx;
-          int y2 = y1 + dy;
-          if(x2 < 0 || x2 >= wave.width) {
-            continue;
-          }
-          if(y2 < 0 || y2 >= wave.height) {
-            continue;
+          int x2, y2;
+          if(periodic_output) {
+            x2 = ((int)x1 + dx + (int)wave.width) % wave.width;
+            y2 = ((int)y1 + dy + (int)wave.height) % wave.height;
+          } else {
+            x2 = x1 + dx;
+            y2 = y1 + dy;
+            if(x2 < 0 || x2 >= (int)wave.width) {
+              continue;
+            }
+            if(y2 < 0 || y2 >= (int)wave.height) {
+              continue;
+            }
           }
 
           unsigned i2 = x2 + y2 * wave.width;

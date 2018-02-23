@@ -70,7 +70,7 @@ void read_config_file(const string& config_path) {
   for (xml_node<> * node = root_node->first_node("overlapping"); node; node = node->next_sibling("overlapping")) {
     string name = node->first_attribute("name")->value();
     string N = node->first_attribute("N")->value();
-    string periodic = get_attribute(node, "periodic", "False");         //TODO add
+    string periodic_output = get_attribute(node, "periodic", "False");
     string periodic_input = get_attribute(node, "periodicInput", "True");
     string ground = get_attribute(node, "ground", "");                  //TODO add
     string symmetry = get_attribute(node, "symmetry", "8");             //TODO add
@@ -83,10 +83,11 @@ void read_config_file(const string& config_path) {
     int height_value = stoi(height);
     int symmetry_value = stoi(symmetry);
     bool periodic_input_value = periodic_input == "True";
+    bool periodic_output_value = periodic_output == "True";
 
     cout << name << " started!" << endl;
     Matrix<Color> m = read_file("samples/" + name + ".png");
-    WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value);
+    WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value, periodic_output_value);
     bool success = wfc.run();
     if(success) {
       write_file("results/" + name + ".png", wfc.output);
