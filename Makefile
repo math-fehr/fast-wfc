@@ -1,4 +1,7 @@
-all:
+results:
+	mkdir results
+
+all: results
 	g++ src/main.cpp -O3 -o wfc
 
 debug:
