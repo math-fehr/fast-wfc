@@ -8,6 +8,8 @@
 
 #include "matrix.hpp"
 
+using namespace std;
+
 template<typename T>
 class WFC {
 public:
@@ -26,15 +28,17 @@ public:
   vector<bool> is_propagating;
   vector<vector<vector<vector<unsigned>>>> propagator;
 
+  unsigned symmetry;
   unsigned n_width;
   unsigned n_height;
 
-  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height)
+  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height, unsigned symmetry)
     : n_width(n_width), n_height(n_height),
       input(input), output(out_width, out_height),
       wave(out_width - n_width + 1, out_height - n_height + 1),
       output_patterns(out_width - n_width + 1, out_height - n_height + 1),
-      is_propagating((out_width - n_width + 1) * (out_height - n_height + 1), false), dis(0,1)
+      is_propagating((out_width - n_width + 1) * (out_height - n_height + 1), false),
+      symmetry(symmetry), dis(0,1)
   {
     gen = mt19937(42);
     init_patterns();
@@ -43,10 +47,8 @@ public:
   }
 
   bool run() {
-    int l = 0;
     while(true) {
       ObserveStatus result = observe();
-      cout << l++ << endl;
       if(result == failure) {
         cout << "failed" << endl;
         return false;
@@ -54,6 +56,25 @@ public:
         return true;
       }
       propagate();
+    }
+  }
+
+  void add_pattern_and_symmetry(const Matrix<T>& sub_matrix) {
+    vector<Matrix<T>> sym(8);
+    sym[0] = sub_matrix;
+    sym[1] = sym[0].reflected();
+    sym[2] = sym[0].rotated();
+    sym[3] = sym[2].reflected();
+    sym[4] = sym[2].rotated();
+    sym[5] = sym[4].reflected();
+    sym[6] = sym[4].rotated();
+    sym[7] = sym[6].reflected();
+
+    for(unsigned k = 0; k<1; k++) {
+      patterns_frequencies[sym[k]] += 1;
+      if(patterns_frequencies[sym[k]] == 1) {
+        patterns.push_back(sym[k]);
+      }
     }
   }
 
@@ -66,10 +87,7 @@ public:
             sub_matrix.data[ki * n_width + kj] = input.data[(i+ki) * input.width + j+kj];
           }
         }
-        patterns_frequencies[sub_matrix] += 1;
-        if(patterns_frequencies[sub_matrix] == 1) {
-          patterns.push_back(sub_matrix);
-        }
+        add_pattern_and_symmetry(sub_matrix);
       }
     }
 
@@ -131,9 +149,11 @@ public:
 
     for(unsigned i = 0; i < wave.data.size(); i++) {
       double sum = 0;
+      int nb_possibilities = 0;
       for(unsigned k = 0; k < patterns.size(); k++) {
         if(wave[i][k]) {
           sum += patterns_frequencies_by_id[k];
+          nb_possibilities++;
         }
       }
 
@@ -142,15 +162,20 @@ public:
       }
 
       double noise = dis(gen) * 1e-5;
-      double entropy = 0;
+      double entropy;
       double main_sum = 0;
       double log_sum = log(sum);
-      for(unsigned k = 0; k<patterns.size(); k++) {
-        if(wave[i][k]) {
-          main_sum += patterns_frequencies_by_id[k] * log_patterns_frequencies_by_id[k];
+
+      if(nb_possibilities == 1) {
+        entropy = 0;
+      } else {
+        for(unsigned k = 0; k<patterns.size(); k++) {
+          if(wave[i][k]) {
+            main_sum += patterns_frequencies_by_id[k] * log_patterns_frequencies_by_id[k];
+          }
         }
+        entropy = log_sum - main_sum / sum;
       }
-      entropy = log_sum - main_sum / sum;
 
       if(entropy > 0 && entropy + noise < min) {
         min = entropy + noise;

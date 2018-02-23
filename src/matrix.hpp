@@ -24,6 +24,32 @@ public:
     this->data = vector<T>(width * height);
   }
 
+  Matrix(const Matrix& m) {
+    this->width = m.width;
+    this->height = m.height;
+    this->data = m.data;
+  }
+
+  Matrix<T> reflected() {
+    Matrix<T> result = Matrix<T>(width, height);
+    for(unsigned y = 0; y < height; y++) {
+      for(unsigned x = 0; x < width; x++) {
+        result.data[x + y * width] = data[width - 1 - x + y * height];
+      }
+    }
+    return result;
+  }
+
+  Matrix<T> rotated() {
+    Matrix<T> result = Matrix<T>(height, width);
+    for(unsigned y = 0; y < width; y++) {
+      for(unsigned x = 0; x < height; x++) {
+        result.data[x + y * height] = data[height - 1 - y + x * width];
+      }
+    }
+    return result;
+  }
+
   bool operator==(const Matrix& m) const {
     if(height != m.height) {
       return false;
@@ -58,7 +84,7 @@ ostream& operator<<(std::ostream& os, const Matrix<T>& m)
     for(unsigned j = 0; j<m.width; j++) {
       os << m.data[i * m.width + j] << ",";
     }
-    os << "],\n";
+    os << "],";
   }
   os << "]";
   return os;
