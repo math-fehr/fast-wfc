@@ -70,7 +70,7 @@ public:
     sym[6] = sym[4].rotated();
     sym[7] = sym[6].reflected();
 
-    for(unsigned k = 0; k<1; k++) {
+    for(unsigned k = 0; k<symmetry; k++) {
       patterns_frequencies[sym[k]] += 1;
       if(patterns_frequencies[sym[k]] == 1) {
         patterns.push_back(sym[k]);
