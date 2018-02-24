@@ -31,11 +31,23 @@ public:
     this->data = m.data;
   }
 
+  const T& get(unsigned i, unsigned j) const {
+    return data[j + i * width];
+  }
+
+  T& get(unsigned i, unsigned j) {
+    return data[j + i * width];
+  }
+
+  void set(unsigned i, unsigned j, T value) {
+    data[j + i * width] = value;
+  }
+
   Matrix<T> reflected() {
     Matrix<T> result = Matrix<T>(width, height);
     for(unsigned y = 0; y < height; y++) {
       for(unsigned x = 0; x < width; x++) {
-        result.data[x + y * width] = data[width - 1 - x + y * height];
+        result.set(y, x, get(y, width - 1 - x));
       }
     }
     return result;
@@ -45,17 +57,17 @@ public:
     Matrix<T> result = Matrix<T>(height, width);
     for(unsigned y = 0; y < width; y++) {
       for(unsigned x = 0; x < height; x++) {
-        result.data[x + y * height] = data[height - 1 - y + x * width];
+        result.set(y,x, get(x, width - 1 - y));
       }
     }
     return result;
   }
 
-  Matrix<T> get_sub_matrix(unsigned x, unsigned y, unsigned sub_width, unsigned sub_height) {
+  Matrix<T> get_sub_matrix(unsigned y, unsigned x, unsigned sub_width, unsigned sub_height) {
     Matrix<T> sub_matrix = Matrix<T>(sub_width, sub_height);
     for(unsigned ki = 0; ki < sub_height; ki++) {
       for(unsigned kj = 0; kj < sub_width; kj++) {
-        sub_matrix.data[ki * sub_width + kj] = data[((y+ki) % height) * width + (x + kj) % width];
+        sub_matrix.set(ki, kj, get((y+ki) % height, (x+kj) % width));
       }
     }
     return sub_matrix;
@@ -76,13 +88,13 @@ public:
     return true;
   }
 
-  const T& operator[](const unsigned& i) const {
+  /*const T& operator[](const unsigned& i) const {
     return data[i];
   }
 
   T& operator[](const unsigned& i) {
     return data[i];
-  }
+  }*/
 };
 
 
@@ -93,7 +105,7 @@ ostream& operator<<(std::ostream& os, const Matrix<T>& m)
   for(unsigned i = 0; i<m.height; i++) {
     os << "[";
     for(unsigned j = 0; j<m.width; j++) {
-      os << m.data[i * m.width + j] << ",";
+      os << m.get(i,j) << ",";
     }
     os << "],";
   }

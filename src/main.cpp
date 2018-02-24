@@ -24,7 +24,7 @@ struct Color {
   bool operator!=(const Color& c) const {
     return !(c == *this);
   }
-  operator unsigned() const {
+  explicit operator unsigned() const {
     return r + 256 * g + 256*256*b;
   }
 };
@@ -72,7 +72,7 @@ void read_config_file(const string& config_path) {
     string N = node->first_attribute("N")->value();
     string periodic_output = get_attribute(node, "periodic", "False");
     string periodic_input = get_attribute(node, "periodicInput", "True");
-    string ground = get_attribute(node, "ground", "");                  //TODO add
+    string ground = get_attribute(node, "ground", "0");
     string symmetry = get_attribute(node, "symmetry", "8");
     string screenshots = get_attribute(node, "screenshots", "");        //TODO add
     string width = get_attribute(node, "width", "48");
@@ -82,16 +82,20 @@ void read_config_file(const string& config_path) {
     int width_value = stoi(width);
     int height_value = stoi(height);
     int symmetry_value = stoi(symmetry);
+    int ground_value = stoi(ground);
     bool periodic_input_value = periodic_input == "True";
     bool periodic_output_value = periodic_output == "True";
 
     cout << name << " started!" << endl;
     Matrix<Color> m = read_file("samples/" + name + ".png");
-    WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value, periodic_output_value);
-    bool success = wfc.run();
-    if(success) {
-      write_file("results/" + name + ".png", wfc.output);
-      cout << name << " finished!" << endl;
+    for(unsigned test = 0; test < 10; test++) {
+      WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value, periodic_output_value, ground_value, 6683 + test);
+      bool success = wfc.run();
+      if(success) {
+        write_file("results/" + name + ".png", wfc.output);
+        cout << name << " finished!" << endl;
+        break;
+      }
     }
   }
 }
