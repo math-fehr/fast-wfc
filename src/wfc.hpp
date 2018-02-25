@@ -73,7 +73,7 @@ public:
     assert(false);
   }
 
-  void add_pattern_and_symmetry(const Matrix<T>& sub_matrix) {
+  void add_pattern(const Matrix<T>& sub_matrix) {
     vector<Matrix<T>> sym(8);
     sym[0] = sub_matrix;
     sym[1] = sym[0].reflected();
@@ -98,7 +98,7 @@ public:
     unsigned max_j = periodic_input ? input.width : input.width - n_width + 1;
     for(unsigned i = 0; i < max_i; i++) {
       for(unsigned j = 0; j < max_j; j++) {
-        add_pattern_and_symmetry(input.get_sub_matrix(i,j,n_width,n_height));
+        add_pattern(input.get_sub_matrix(i,j,n_width,n_height));
       }
     }
 
@@ -171,16 +171,37 @@ public:
     return true;
   }
 
-  enum ObserveStatus {
-    success,
-    failure,
-    to_continue
-  };
+  void wave_to_output() {
+    for(unsigned i = 0; i< wave.data.size(); i++) {
+      for(unsigned k = 0; k < patterns.size(); k++) {
+        if(wave.data[i][k]) {
+          output_patterns.data[i] = k;
+        }
+      }
+    }
 
-  ObserveStatus observe() {
+    if(periodic_output) {
+      for(unsigned y = 0; y < wave.height; y++) {
+        for(unsigned x = 0; x < wave.width; x++) {
+          output.get(y,x) = patterns[output_patterns.get(y,x)].get(0,0);
+        }
+      }
+    } else {
+      for(unsigned y = 0; y < wave.height; y++) {
+        for(unsigned x = 0; x < wave.width; x++) {
+          for(unsigned dy = 0; dy < n_height; dy++) {
+            for(unsigned dx = 0; dx < n_width; dx++) {
+              output.get(y + dy, x + dx) = patterns[output_patterns.get(y,x)].get(dy,dx);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  int get_min_entropy() {
     double min = std::numeric_limits<float>::infinity();
     int argmin = -1;
-
     for(unsigned i = 0; i < wave.data.size(); i++) {
       double sum = 0;
       int nb_possibilities = 0;
@@ -192,7 +213,7 @@ public:
       }
 
       if(sum == 0) {
-        return failure;
+        return -2;
       }
 
       double noise = dis(gen) * 1e-5;
@@ -216,33 +237,23 @@ public:
         argmin = i;
       }
     }
+    return argmin;
+  }
+
+  enum ObserveStatus {
+    success,
+    failure,
+    to_continue
+  };
+
+  ObserveStatus observe() {
+    int argmin = get_min_entropy();
+    if(argmin == -2) {
+      return failure;
+    }
 
     if(argmin == -1) {
-      for(unsigned i = 0; i< wave.data.size(); i++) {
-        for(unsigned k = 0; k < patterns.size(); k++) {
-          if(wave.data[i][k]) {
-            output_patterns.data[i] = k;
-          }
-        }
-      }
-
-      if(periodic_output) {
-        for(unsigned y = 0; y < wave.height; y++) {
-          for(unsigned x = 0; x < wave.width; x++) {
-            output.get(y,x) = patterns[output_patterns.get(y,x)].get(0,0);
-          }
-        }
-      } else {
-        for(unsigned y = 0; y < wave.height; y++) {
-          for(unsigned x = 0; x < wave.width; x++) {
-            for(unsigned dy = 0; dy < n_height; dy++) {
-              for(unsigned dx = 0; dx < n_width; dx++) {
-                output.get(y + dy, x + dx) = patterns[output_patterns.get(y,x)].get(dy,dx);
-              }
-            }
-          }
-        }
-      }
+      wave_to_output();
       return success;
     }
 

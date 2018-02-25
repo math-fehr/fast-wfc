@@ -79,7 +79,7 @@ void read_config_file(const string& config_path) {
     string periodic_input = get_attribute(node, "periodicInput", "True");
     string ground = get_attribute(node, "ground", "0");
     string symmetry = get_attribute(node, "symmetry", "8");
-    string screenshots = get_attribute(node, "screenshots", "");        //TODO add
+    string screenshots = get_attribute(node, "screenshots", "2");
     string width = get_attribute(node, "width", "48");
     string height = get_attribute(node, "width", "48");
 
@@ -88,18 +88,21 @@ void read_config_file(const string& config_path) {
     int height_value = stoi(height);
     int symmetry_value = stoi(symmetry);
     int ground_value = stoi(ground);
+    int screenshots_value = stoi(screenshots);
     bool periodic_input_value = periodic_input == "True";
     bool periodic_output_value = periodic_output == "True";
 
     cout << name << " started!" << endl;
     Matrix<Color> m = read_file("samples/" + name + ".png");
-    for(unsigned test = 0; test < 10; test++) {
-      WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value, periodic_output_value, ground_value, 6683 + test);
-      bool success = wfc.run();
-      if(success) {
-        write_file("results/" + name + ".png", wfc.output);
-        cout << name << " finished!" << endl;
-        break;
+    for(int i = 0; i < screenshots_value; i++) {
+      for(unsigned test = 0; test < 10; test++) {
+        WFC<Color> wfc = WFC<Color>(m, width_value, height_value, N_value, N_value, symmetry_value, periodic_input_value, periodic_output_value, ground_value, 6683 + test * screenshots_value + i);
+        bool success = wfc.run();
+        if(success) {
+          write_file("results/" + name + ".png", wfc.output);
+          cout << name << " finished!" << endl;
+          break;
+        }
       }
     }
   }
@@ -110,7 +113,7 @@ int main() {
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  read_config_file("samples.xml");
+  read_config_file("samples2.xml");
 
   end = std::chrono::system_clock::now();
   int elapsed_s = std::chrono::duration_cast<std::chrono::seconds> (end-start).count();
