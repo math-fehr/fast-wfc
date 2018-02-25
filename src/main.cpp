@@ -73,7 +73,7 @@ void read_config_file(const string& config_path) {
   buffer.push_back('\0');
   doc.parse<0>(&buffer[0]);
   root_node = doc.first_node("samples");
-  //ProfilerStart("profile.log");
+  ProfilerStart("profile.log");
   for (xml_node<> * node = root_node->first_node("overlapping"); node; node = node->next_sibling("overlapping")) {
     string name = node->first_attribute("name")->value();
     string N = node->first_attribute("N")->value();
@@ -108,7 +108,7 @@ void read_config_file(const string& config_path) {
       }
     }
   }
-  //ProfilerStop();
+  ProfilerStop();
 }
 
 int main() {

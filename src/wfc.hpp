@@ -318,8 +318,8 @@ public:
           for(unsigned k2 = 0; k2 < patterns.size(); k2++) {
             if(wave.data[i2][k2]) {
               bool b = false;
-              for(unsigned l = 0; l < prop[k2].size(); l++) {
-                b = wave.data[i1][prop[k2][l]];
+              for(unsigned pattern : prop[k2]) {
+                b = wave.data[i1][pattern];
                 if(b) {
                   break;
                 }
