@@ -67,7 +67,7 @@ public:
     Matrix<T> sub_matrix = Matrix<T>(sub_width, sub_height);
     for(unsigned ki = 0; ki < sub_height; ki++) {
       for(unsigned kj = 0; kj < sub_width; kj++) {
-        sub_matrix.set(ki, kj, get((y+ki) % height, (x+kj) % width));
+        sub_matrix.get(ki, kj) = get((y+ki) % height, (x+kj) % width);
       }
     }
     return sub_matrix;
@@ -87,14 +87,6 @@ public:
     }
     return true;
   }
-
-  /*const T& operator[](const unsigned& i) const {
-    return data[i];
-  }
-
-  T& operator[](const unsigned& i) {
-    return data[i];
-  }*/
 };
 
 

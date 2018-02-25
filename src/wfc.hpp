@@ -29,17 +29,17 @@ public:
   vector<vector<vector<vector<unsigned>>>> propagator;
 
   unsigned symmetry;
-  int ground_matrix_id;
+  bool ground;
   bool periodic_input;
   bool periodic_output;
   unsigned n_width;
   unsigned n_height;
 
-  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height, unsigned symmetry, bool periodic_input, bool periodic_output, int ground_matrix_id, int seed = 6683)
-    : n_width(n_width), n_height(n_height),
-      input(input), output(out_width, out_height),
-      symmetry(symmetry), dis(0,1), periodic_input(periodic_input), periodic_output(periodic_output),
-      gen(seed), ground_matrix_id(ground_matrix_id)
+  WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height,
+      unsigned symmetry, bool periodic_input, bool periodic_output, int ground, int seed = 6683)
+    : gen(seed), dis(0,1), input(input), output(out_width, out_height),
+      symmetry(symmetry), ground(ground),
+      periodic_input(periodic_input), periodic_output(periodic_output), n_width(n_width), n_height(n_height)
   {
     unsigned wave_width = periodic_output ? out_width : out_width - n_width + 1;
     unsigned wave_height = periodic_output ? out_height : out_height - n_height + 1;
@@ -50,8 +50,8 @@ public:
 
   bool run() {
     init_patterns();
-    init_wave();
     init_propagator();
+    init_wave();
     while(true) {
       ObserveStatus result = observe();
       if(result == failure) {
@@ -64,13 +64,13 @@ public:
     }
   }
 
-  int get_id_of_matrix(const Matrix<T>& matrix) {
+  unsigned get_id_of_matrix(const Matrix<T>& matrix) {
     for(unsigned i = 0; i<patterns.size(); i++) {
       if(matrix == patterns[i]) {
         return i;
       }
     }
-    return -1;
+    assert(false);
   }
 
   void add_pattern_and_symmetry(const Matrix<T>& sub_matrix) {
@@ -112,6 +112,29 @@ public:
     unsigned nb_patterns = patterns.size();
     for(unsigned i = 0; i<wave.data.size(); i++) {
       wave.data[i] = vector<bool>(nb_patterns, true);
+    }
+
+    if(ground != 0) {
+      Matrix<T> ground_matrix = input.get_sub_matrix(input.height - 1, 0, n_width, n_height);
+      unsigned ground_matrix_id = get_id_of_matrix(ground_matrix);
+
+      for(unsigned j = 0; j < wave.width; j++) {
+        for(unsigned k = 0; k < patterns.size(); k++) {
+          if(ground_matrix_id != k) {
+            wave.get(wave.height - 1, j)[k] = false;
+            change(wave.height - 1, j);
+          }
+        }
+      }
+
+      for(unsigned i = 0; i < wave.height - 1; i++) {
+        for(unsigned j = 0; j < wave.width; j++) {
+          wave.get(i, j)[ground_matrix_id] = false;
+          change(i,j);
+        }
+      }
+
+      propagate();
     }
   }
 
@@ -303,6 +326,10 @@ public:
     }
     to_propagate.push_back(i);
     is_propagating[i] = true;
+  }
+
+  void change(unsigned i, unsigned j) {
+    change(j + wave.height * i);
   }
 };
 

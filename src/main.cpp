@@ -29,6 +29,11 @@ struct Color {
   }
 };
 
+ostream& operator<<(std::ostream& os, const Color& c) {
+  os << "(" << (unsigned)c.r << "," << (unsigned)c.g << "," << (unsigned)c.b << ")";
+  return os;
+}
+
 
 Matrix<Color> read_file(const string& file_path) {
   int width;
