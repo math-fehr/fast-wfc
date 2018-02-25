@@ -52,6 +52,7 @@ public:
     init_patterns();
     init_propagator();
     init_wave();
+    init_ground();
     while(true) {
       ObserveStatus result = observe();
       if(result == failure) {
@@ -113,29 +114,32 @@ public:
     for(unsigned i = 0; i<wave.data.size(); i++) {
       wave.data[i] = vector<bool>(nb_patterns, true);
     }
+  }
 
-    if(ground != 0) {
-      Matrix<T> ground_matrix = input.get_sub_matrix(input.height - 1, 0, n_width, n_height);
-      unsigned ground_matrix_id = get_id_of_matrix(ground_matrix);
-
-      for(unsigned j = 0; j < wave.width; j++) {
-        for(unsigned k = 0; k < patterns.size(); k++) {
-          if(ground_matrix_id != k) {
-            wave.get(wave.height - 1, j)[k] = false;
-            change(wave.height - 1, j);
-          }
-        }
-      }
-
-      for(unsigned i = 0; i < wave.height - 1; i++) {
-        for(unsigned j = 0; j < wave.width; j++) {
-          wave.get(i, j)[ground_matrix_id] = false;
-          change(i,j);
-        }
-      }
-
-      propagate();
+  void init_ground() {
+    if(!ground) {
+      return;
     }
+    Matrix<T> ground_matrix = input.get_sub_matrix(input.height - 1, input.width / 2, n_width, n_height);
+    unsigned ground_matrix_id = get_id_of_matrix(ground_matrix);
+
+    for(unsigned j = 0; j < wave.width; j++) {
+      for(unsigned k = 0; k < patterns.size(); k++) {
+        if(ground_matrix_id != k) {
+          wave.get(wave.height - 1, j)[k] = false;
+          change(wave.height - 1, j);
+        }
+      }
+    }
+
+    for(unsigned i = 0; i < wave.height - 1; i++) {
+      for(unsigned j = 0; j < wave.width; j++) {
+        wave.get(i, j)[ground_matrix_id] = false;
+        change(i,j);
+      }
+    }
+
+    propagate();
   }
 
   void init_propagator() {

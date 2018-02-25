@@ -7,6 +7,7 @@
 #include "matrix.hpp"
 #include "wfc.hpp"
 #include "rapidxml.hpp"
+#include <gperftools/profiler.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -72,6 +73,7 @@ void read_config_file(const string& config_path) {
   buffer.push_back('\0');
   doc.parse<0>(&buffer[0]);
   root_node = doc.first_node("samples");
+  //ProfilerStart("profile.log");
   for (xml_node<> * node = root_node->first_node("overlapping"); node; node = node->next_sibling("overlapping")) {
     string name = node->first_attribute("name")->value();
     string N = node->first_attribute("N")->value();
@@ -106,6 +108,7 @@ void read_config_file(const string& config_path) {
       }
     }
   }
+  //ProfilerStop();
 }
 
 int main() {
