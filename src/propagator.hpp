@@ -2,13 +2,15 @@
 
 #include <vector>
 #include "matrix.hpp"
+#include "matrix3D.hpp"
 #include "wave.hpp"
 
 using namespace std;
 
 class Propagator {
 private:
-  vector<vector<vector<vector<unsigned>>>> propagator;
+  Matrix3D<vector<unsigned>> propagator;
+  Matrix<bool> propagating;
   vector<unsigned> to_propagate;
   vector<bool> is_propagating;
   unsigned wave_width;
@@ -21,32 +23,26 @@ public:
   Propagator() {};
 
   Propagator(unsigned wave_width, unsigned wave_height, unsigned n_width, unsigned n_height, bool periodic_output) :
+    propagating(wave_width, wave_height),
     is_propagating(wave_width * wave_height, false),
     wave_width(wave_width), wave_height(wave_height),
     n_width(n_width), n_height(n_height), periodic_output(periodic_output) {
   }
 
-  void add_to_propagator(unsigned pattern) {
-    if(is_propagating[pattern]) {
-      return;
-    }
-    to_propagate.push_back(pattern);
-    is_propagating[pattern] = true;
+  void add_to_propagator(unsigned index) {
+    propagating.data[index] = true;
   }
 
   template<typename T>
   void init(const vector<Matrix<T>>& patterns) {
     patterns_size = patterns.size();
-    propagator = vector<vector<vector<vector<unsigned>>>>(2 * n_width - 1);
+    propagator = Matrix3D<vector<unsigned>>(2 * n_width - 1, 2 * n_height - 1, patterns.size());
     for(unsigned x = 0; x < 2 * n_width - 1; x++) {
-      propagator[x] = vector<vector<vector<unsigned>>>(2 * n_height - 1);
       for(unsigned y = 0; y < 2 * n_height - 1; y++) {
-        propagator[x][y] = vector<vector<unsigned>>(patterns.size());
         for(unsigned k1 = 0; k1 < patterns.size(); k1++) {
-          propagator[x][y][k1] = vector<unsigned>();
           for(unsigned k2 = 0; k2 < patterns.size(); k2++) {
             if(agrees(patterns[k1], patterns[k2], x - n_width + 1, y - n_height + 1)) {
-              propagator[x][y][k1].push_back(k2);
+              propagator.get(x,y,k1).push_back(k2);
             }
           }
         }
@@ -71,45 +67,49 @@ public:
   }
 
   void propagate(Wave& wave) {
-    while(to_propagate.size() != 0) {
-      unsigned i1 = to_propagate.back();
-      to_propagate.pop_back();
-      is_propagating[i1] = false;
-
-      unsigned x1 = i1 % wave.get_width();
-      unsigned y1 = i1 / wave.get_width();
-
-      for(int dx = -int(n_width) + 1; dx < int(n_width); dx++) {
-        for(int dy = -int(n_height) + 1; dy < int(n_height); dy++) {
-          int x2, y2;
-          if(periodic_output) {
-            x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
-            y2 = ((int)y1 + dy + (int)wave.get_height()) % wave.get_height();
-          } else {
-            x2 = x1 + dx;
-            y2 = y1 + dy;
-            if(x2 < 0 || x2 >= (int)wave.get_width()) {
-              continue;
-            }
-            if(y2 < 0 || y2 >= (int)wave.get_height()) {
-              continue;
-            }
+    bool should_propagate = true;
+    while(should_propagate) {
+      should_propagate = false;
+      for(unsigned x1 = 0; x1 < wave.get_width(); x1++) {
+        for(unsigned y1 = 0; y1 < wave.get_height(); y1++) {
+          if(!propagating.data[y1 * wave.get_width() + x1]) {
+            continue;
           }
+          propagating.set(y1, x1, false);
 
-          unsigned i2 = x2 + y2 * wave.get_width();
-          const vector<vector<unsigned>>& prop = propagator[n_width - 1 - dx][n_height - 1 - dy];
-          for(unsigned k2 = 0; k2 < patterns_size; k2++) {
-            if(wave.get(i2, k2)) {
-              bool b = false;
-              for(unsigned pattern : prop[k2]) {
-                b = wave.get(i1, pattern);
-                if(b) {
-                  break;
+          for(int dx = -int(n_width) + 1; dx < int(n_width); dx++) {
+            for(int dy = -int(n_height) + 1; dy < int(n_height); dy++) {
+              int x2, y2;
+              if(periodic_output) {
+                x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
+                y2 = ((int)y1 + dy + (int)wave.get_height()) % wave.get_height();
+              } else {
+                x2 = x1 + dx;
+                y2 = y1 + dy;
+                if(x2 < 0 || x2 >= (int)wave.get_width()) {
+                  continue;
+                }
+                if(y2 < 0 || y2 >= (int)wave.get_height()) {
+                  continue;
                 }
               }
-              if(!b) {
-                add_to_propagator(i2);
-                wave.set(i2, k2, false);
+
+              unsigned i2 = x2 + y2 * wave.get_width();
+              for(unsigned k2 = 0; k2 < patterns_size; k2++) {
+                if(wave.get(i2, k2)) {
+                  bool b = false;
+                  for(const unsigned& pattern : propagator.get(n_width - 1 - dx, n_height - 1 - dy, k2)) {
+                    b = wave.get(y1, x1, pattern);
+                    if(b) {
+                      break;
+                    }
+                  }
+                  if(!b) {
+                    should_propagate = true;
+                    add_to_propagator(i2);
+                    wave.set(i2, k2, false);
+                  }
+                }
               }
             }
           }
@@ -117,6 +117,4 @@ public:
       }
     }
   }
-
-
 };
