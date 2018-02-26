@@ -10,6 +10,50 @@
 
 using namespace std;
 
+class Wave {
+private:
+  Matrix<vector<bool>> data;
+public:
+  Wave() {}
+
+  Wave(unsigned width, unsigned height) : data(width, height) {
+  }
+
+  void init(unsigned pattern_size) {
+    for(unsigned i = 0; i<get_size(); i++) {
+      data.data[i] = vector<bool>(pattern_size, true);
+    }
+  }
+
+  bool get(unsigned index, unsigned pattern) {
+    return data.data[index][pattern];
+  }
+
+  void set(unsigned index, unsigned pattern, bool value) {
+    data.data[index][pattern] = value;
+  }
+
+  bool get(unsigned i, unsigned j, unsigned pattern) {
+    return data.get(i,j)[pattern];
+  }
+
+  void set(unsigned i, unsigned j, unsigned pattern, bool value) {
+    data.get(i,j)[pattern] = value;
+  }
+
+  unsigned get_width() {
+    return data.width;
+  }
+
+  unsigned get_height() {
+    return data.height;
+  }
+
+  unsigned get_size() {
+    return data.data.size();
+  }
+};
+
 template<typename T>
 class WFC {
 public:
@@ -23,7 +67,7 @@ public:
   vector<unsigned> patterns_frequencies_by_id;
   vector<double> log_patterns_frequencies_by_id;
   vector<Matrix<T>> patterns;
-  Matrix<vector<bool>> wave;
+  Wave wave;
   vector<unsigned> to_propagate;
   vector<bool> is_propagating;
   vector<vector<vector<vector<unsigned>>>> propagator;
@@ -43,7 +87,7 @@ public:
   {
     unsigned wave_width = periodic_output ? out_width : out_width - n_width + 1;
     unsigned wave_height = periodic_output ? out_height : out_height - n_height + 1;
-    wave = Matrix<vector<bool>>(wave_width, wave_height);
+    wave = Wave(wave_width, wave_height);
     output_patterns = Matrix<unsigned>(wave_width, wave_height);
     is_propagating = vector<bool>(wave_width * wave_height, false);
   }
@@ -51,7 +95,7 @@ public:
   bool run() {
     init_patterns();
     init_propagator();
-    init_wave();
+    wave.init(patterns.size());
     init_ground();
     while(true) {
       ObserveStatus result = observe();
@@ -109,13 +153,6 @@ public:
     }
   }
 
-  void init_wave() {
-    unsigned nb_patterns = patterns.size();
-    for(unsigned i = 0; i<wave.data.size(); i++) {
-      wave.data[i] = vector<bool>(nb_patterns, true);
-    }
-  }
-
   void init_ground() {
     if(!ground) {
       return;
@@ -123,18 +160,18 @@ public:
     Matrix<T> ground_matrix = input.get_sub_matrix(input.height - 1, input.width / 2, n_width, n_height);
     unsigned ground_matrix_id = get_id_of_matrix(ground_matrix);
 
-    for(unsigned j = 0; j < wave.width; j++) {
+    for(unsigned j = 0; j < wave.get_width(); j++) {
       for(unsigned k = 0; k < patterns.size(); k++) {
         if(ground_matrix_id != k) {
-          wave.get(wave.height - 1, j)[k] = false;
-          change(wave.height - 1, j);
+          wave.set(wave.get_height() - 1, j, k, false);
+          change(wave.get_height() - 1, j);
         }
       }
     }
 
-    for(unsigned i = 0; i < wave.height - 1; i++) {
-      for(unsigned j = 0; j < wave.width; j++) {
-        wave.get(i, j)[ground_matrix_id] = false;
+    for(unsigned i = 0; i < wave.get_height() - 1; i++) {
+      for(unsigned j = 0; j < wave.get_width(); j++) {
+        wave.set(i, j, ground_matrix_id, false);
         change(i,j);
       }
     }
@@ -176,23 +213,23 @@ public:
   }
 
   void wave_to_output() {
-    for(unsigned i = 0; i< wave.data.size(); i++) {
+    for(unsigned i = 0; i< wave.get_size(); i++) {
       for(unsigned k = 0; k < patterns.size(); k++) {
-        if(wave.data[i][k]) {
+        if(wave.get(i, k)) {
           output_patterns.data[i] = k;
         }
       }
     }
 
     if(periodic_output) {
-      for(unsigned y = 0; y < wave.height; y++) {
-        for(unsigned x = 0; x < wave.width; x++) {
+      for(unsigned y = 0; y < wave.get_height(); y++) {
+        for(unsigned x = 0; x < wave.get_width(); x++) {
           output.get(y,x) = patterns[output_patterns.get(y,x)].get(0,0);
         }
       }
     } else {
-      for(unsigned y = 0; y < wave.height; y++) {
-        for(unsigned x = 0; x < wave.width; x++) {
+      for(unsigned y = 0; y < wave.get_height(); y++) {
+        for(unsigned x = 0; x < wave.get_width(); x++) {
           for(unsigned dy = 0; dy < n_height; dy++) {
             for(unsigned dx = 0; dx < n_width; dx++) {
               output.get(y + dy, x + dx) = patterns[output_patterns.get(y,x)].get(dy,dx);
@@ -206,11 +243,11 @@ public:
   int get_min_entropy() {
     double min = std::numeric_limits<float>::infinity();
     int argmin = -1;
-    for(unsigned i = 0; i < wave.data.size(); i++) {
+    for(unsigned i = 0; i < wave.get_size(); i++) {
       double sum = 0;
       int nb_possibilities = 0;
       for(unsigned k = 0; k < patterns.size(); k++) {
-        if(wave.data[i][k]) {
+        if(wave.get(i,k)) {
           sum += patterns_frequencies_by_id[k];
           nb_possibilities++;
         }
@@ -229,7 +266,7 @@ public:
         entropy = 0;
       } else {
         for(unsigned k = 0; k<patterns.size(); k++) {
-          if(wave.data[i][k]) {
+          if(wave.get(i,k)) {
             main_sum += patterns_frequencies_by_id[k] * log_patterns_frequencies_by_id[k];
           }
         }
@@ -266,12 +303,12 @@ public:
     unsigned chosen_value;
 
     for(unsigned k = 0; k < patterns.size(); k++) {
-      s+= wave.data[argmin][k] ? patterns_frequencies_by_id[k] : 0;
+      s+= wave.get(argmin,k) ? patterns_frequencies_by_id[k] : 0;
     }
     random_value *= s;
 
     for(unsigned k = 0; k < patterns.size(); k++) {
-      random_value -= wave.data[argmin][k] ? patterns_frequencies_by_id[k] : 0;
+      random_value -= wave.get(argmin,k) ? patterns_frequencies_by_id[k] : 0;
       if(random_value <= 0 || k == patterns.size() - 1) {
         chosen_value = k;
         break;
@@ -279,7 +316,7 @@ public:
     }
 
     for(unsigned k = 0; k < patterns.size(); k++) {
-      wave.data[argmin][k] = k == chosen_value;
+      wave.set(argmin, k, k == chosen_value);
     }
 
     change(argmin);
@@ -293,40 +330,40 @@ public:
       to_propagate.pop_back();
       is_propagating[i1] = false;
 
-      unsigned x1 = i1 % wave.width;
-      unsigned y1 = i1 / wave.width;
+      unsigned x1 = i1 % wave.get_width();
+      unsigned y1 = i1 / wave.get_width();
 
       for(int dx = -int(n_width) + 1; dx < int(n_width); dx++) {
         for(int dy = -int(n_height) + 1; dy < int(n_height); dy++) {
           int x2, y2;
           if(periodic_output) {
-            x2 = ((int)x1 + dx + (int)wave.width) % wave.width;
-            y2 = ((int)y1 + dy + (int)wave.height) % wave.height;
+            x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
+            y2 = ((int)y1 + dy + (int)wave.get_height()) % wave.get_height();
           } else {
             x2 = x1 + dx;
             y2 = y1 + dy;
-            if(x2 < 0 || x2 >= (int)wave.width) {
+            if(x2 < 0 || x2 >= (int)wave.get_width()) {
               continue;
             }
-            if(y2 < 0 || y2 >= (int)wave.height) {
+            if(y2 < 0 || y2 >= (int)wave.get_height()) {
               continue;
             }
           }
 
-          unsigned i2 = x2 + y2 * wave.width;
+          unsigned i2 = x2 + y2 * wave.get_width();
           const vector<vector<unsigned>>& prop = propagator[n_width - 1 - dx][n_height - 1 - dy];
           for(unsigned k2 = 0; k2 < patterns.size(); k2++) {
-            if(wave.data[i2][k2]) {
+            if(wave.get(i2, k2)) {
               bool b = false;
               for(unsigned pattern : prop[k2]) {
-                b = wave.data[i1][pattern];
+                b = wave.get(i1, pattern);
                 if(b) {
                   break;
                 }
               }
               if(!b) {
                 change(i2);
-                wave.data[i2][k2] = false;
+                wave.set(i2, k2, false);
               }
             }
           }
@@ -344,7 +381,7 @@ public:
   }
 
   void change(unsigned i, unsigned j) {
-    change(j + wave.height * i);
+    change(j + wave.get_height() * i);
   }
 };
 
