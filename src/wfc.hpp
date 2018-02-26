@@ -12,47 +12,102 @@ using namespace std;
 
 class Wave {
 private:
-  Matrix<vector<bool>> data;
+  vector<uint8_t> data;
+  unsigned width;
+  unsigned height;
+  unsigned pattern_size;
 public:
   Wave() {}
 
-  Wave(unsigned width, unsigned height) : data(width, height) {
+
+  Wave(unsigned width, unsigned height) : width(width), height(height), pattern_size(0) {
   }
 
   void init(unsigned pattern_size) {
-    for(unsigned i = 0; i<get_size(); i++) {
-      data.data[i] = vector<bool>(pattern_size, true);
-    }
+    data = vector<uint8_t>(width * height * pattern_size, 1);
+    this->pattern_size = pattern_size;
   }
 
   bool get(unsigned index, unsigned pattern) {
-    return data.data[index][pattern];
+    return data[index * pattern_size + pattern];
   }
 
   void set(unsigned index, unsigned pattern, bool value) {
-    data.data[index][pattern] = value;
+    data[index * pattern_size + pattern] = value;
   }
 
   bool get(unsigned i, unsigned j, unsigned pattern) {
-    return data.get(i,j)[pattern];
+    return get(i * width + j, pattern);
   }
 
   void set(unsigned i, unsigned j, unsigned pattern, bool value) {
-    data.get(i,j)[pattern] = value;
+    set(i * width + j, pattern, value);
   }
 
   unsigned get_width() {
-    return data.width;
+    return width;
   }
 
   unsigned get_height() {
-    return data.height;
+    return height;
   }
 
   unsigned get_size() {
-    return data.data.size();
+    return width * height;
   }
 };
+
+/*
+class Wave {
+private:
+  vector<uint8_t> data;
+  unsigned width;
+  unsigned height;
+  unsigned pattern_size;
+public:
+  Wave() {}
+
+  Wave(unsigned width, unsigned height) : width(width), height(height), pattern_size(0) {
+  }
+
+  void init(unsigned pattern_size) {
+    data = vector<uint8_t>(width * height * ((pattern_size + 7) / 8), 0b11111111);
+    this->pattern_size = (pattern_size + 7) / 8;
+  }
+
+  bool get(unsigned index, unsigned pattern) {
+    return data[index * pattern_size + pattern / 8] & (1 << (pattern % 8));
+  }
+
+  void set(unsigned index, unsigned pattern, bool value) {
+    if(!value) {
+      data[index * pattern_size + pattern / 8] &= ~(1 << (pattern % 8));
+    } else {
+      data[index * pattern_size + pattern / 8] |= 1 << (pattern % 8);
+    }
+  }
+
+  bool get(unsigned i, unsigned j, unsigned pattern) {
+    return get(i * width + j, pattern);
+  }
+
+  void set(unsigned i, unsigned j, unsigned pattern, bool value) {
+    set(i * width + j, pattern, value);
+  }
+
+  unsigned get_width() {
+    return width;
+  }
+
+  unsigned get_height() {
+    return height;
+  }
+
+  unsigned get_size() {
+    return width * height;
+  }
+};*/
+
 
 template<typename T>
 class WFC {
@@ -63,9 +118,8 @@ public:
   Matrix<T> input;
   Matrix<T> output;
   Matrix<unsigned> output_patterns;
-  unordered_map<Matrix<T>, unsigned> patterns_frequencies;
-  vector<unsigned> patterns_frequencies_by_id;
-  vector<double> log_patterns_frequencies_by_id;
+  vector<unsigned> patterns_frequencies;
+  vector<double> plogp_patterns_frequencies;
   vector<Matrix<T>> patterns;
   Wave wave;
   vector<unsigned> to_propagate;
@@ -118,7 +172,7 @@ public:
     assert(false);
   }
 
-  void add_pattern(const Matrix<T>& sub_matrix) {
+  void add_pattern(const Matrix<T>& sub_matrix, unordered_map<Matrix<T>, unsigned>& matrix_frequencies) {
     vector<Matrix<T>> sym(8);
     sym[0] = sub_matrix;
     sym[1] = sym[0].reflected();
@@ -130,26 +184,27 @@ public:
     sym[7] = sym[6].reflected();
 
     for(unsigned k = 0; k<symmetry; k++) {
-      patterns_frequencies[sym[k]] += 1;
-      if(patterns_frequencies[sym[k]] == 1) {
+      matrix_frequencies[sym[k]] += 1;
+      if(matrix_frequencies[sym[k]] == 1) {
         patterns.push_back(sym[k]);
       }
     }
   }
 
   void init_patterns() {
+    unordered_map<Matrix<T>, unsigned> matrix_frequencies;
     Matrix<T> sub_matrix = Matrix<T>(n_width, n_height);
     unsigned max_i = periodic_input ? input.height : input.height - n_height + 1;
     unsigned max_j = periodic_input ? input.width : input.width - n_width + 1;
     for(unsigned i = 0; i < max_i; i++) {
       for(unsigned j = 0; j < max_j; j++) {
-        add_pattern(input.get_sub_matrix(i,j,n_width,n_height));
+        add_pattern(input.get_sub_matrix(i,j,n_width,n_height), matrix_frequencies);
       }
     }
 
     for (const Matrix<T>& pattern : patterns) {
-      patterns_frequencies_by_id.push_back(patterns_frequencies[pattern]);
-      log_patterns_frequencies_by_id.push_back(log(patterns_frequencies[pattern]));
+      patterns_frequencies.push_back(matrix_frequencies[pattern]);
+      plogp_patterns_frequencies.push_back((double)matrix_frequencies[pattern] * log(matrix_frequencies[pattern]));
     }
   }
 
@@ -248,7 +303,7 @@ public:
       int nb_possibilities = 0;
       for(unsigned k = 0; k < patterns.size(); k++) {
         if(wave.get(i,k)) {
-          sum += patterns_frequencies_by_id[k];
+          sum += patterns_frequencies[k];
           nb_possibilities++;
         }
       }
@@ -267,7 +322,7 @@ public:
       } else {
         for(unsigned k = 0; k<patterns.size(); k++) {
           if(wave.get(i,k)) {
-            main_sum += patterns_frequencies_by_id[k] * log_patterns_frequencies_by_id[k];
+            main_sum += plogp_patterns_frequencies[k];
           }
         }
         entropy = log_sum - main_sum / sum;
@@ -303,12 +358,12 @@ public:
     unsigned chosen_value;
 
     for(unsigned k = 0; k < patterns.size(); k++) {
-      s+= wave.get(argmin,k) ? patterns_frequencies_by_id[k] : 0;
+      s+= wave.get(argmin,k) ? patterns_frequencies[k] : 0;
     }
     random_value *= s;
 
     for(unsigned k = 0; k < patterns.size(); k++) {
-      random_value -= wave.get(argmin,k) ? patterns_frequencies_by_id[k] : 0;
+      random_value -= wave.get(argmin,k) ? patterns_frequencies[k] : 0;
       if(random_value <= 0 || k == patterns.size() - 1) {
         chosen_value = k;
         break;
