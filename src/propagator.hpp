@@ -76,6 +76,9 @@ public:
 
           for(int dx = -1; dx < 2; dx++) {
             for(int dy = -1; dy < 2; dy++) {
+              if(abs(dx) + abs(dy) != 1) {
+                continue;
+              }
               int x2, y2;
               if(periodic_output) {
                 x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
