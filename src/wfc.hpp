@@ -15,14 +15,13 @@ using namespace std;
 template<typename T>
 class WFC {
 public:
-  std::mt19937 gen;
-  std::uniform_real_distribution<> dis;
+  //std::mt19937 gen;
+  minstd_rand gen;
 
   Matrix<T> input;
   Matrix<T> output;
   Matrix<unsigned> output_patterns;
   vector<unsigned> patterns_frequencies;
-  vector<double> plogp_patterns_frequencies;
   vector<Matrix<T>> patterns;
   Wave wave;
   Propagator propagator;
@@ -36,13 +35,12 @@ public:
 
   WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height,
       unsigned symmetry, bool periodic_input, bool periodic_output, int ground, int seed = 6683)
-    : gen(seed), dis(0,1), input(input), output(out_width, out_height),
+    : gen(seed) , input(input), output(out_width, out_height),
       symmetry(symmetry), ground(ground),
       periodic_input(periodic_input), periodic_output(periodic_output), n_width(n_width), n_height(n_height)
   {
     unsigned wave_width = periodic_output ? out_width : out_width - n_width + 1;
     unsigned wave_height = periodic_output ? out_height : out_height - n_height + 1;
-    wave = Wave(wave_width, wave_height);
     propagator = Propagator(wave_width, wave_height, n_width, n_height, periodic_output);
     output_patterns = Matrix<unsigned>(wave_width, wave_height);
   }
@@ -50,7 +48,7 @@ public:
   bool run() {
     init_patterns();
     propagator.init(patterns);
-    wave.init(patterns.size());
+    wave = Wave(output_patterns.width, output_patterns.height, patterns_frequencies);
     init_ground();
     while(true) {
       ObserveStatus result = observe();
@@ -105,7 +103,6 @@ public:
 
     for (const Matrix<T>& pattern : patterns) {
       patterns_frequencies.push_back(matrix_frequencies[pattern]);
-      plogp_patterns_frequencies.push_back((double)matrix_frequencies[pattern] * log(matrix_frequencies[pattern]));
     }
   }
 
@@ -164,44 +161,7 @@ public:
   }
 
   int get_min_entropy() {
-    double min = std::numeric_limits<float>::infinity();
-    int argmin = -1;
-    for(unsigned i = 0; i < wave.get_size(); i++) {
-      double sum = 0;
-      int nb_possibilities = 0;
-      for(unsigned k = 0; k < patterns.size(); k++) {
-        if(wave.get(i,k)) {
-          sum += patterns_frequencies[k];
-          nb_possibilities++;
-        }
-      }
-
-      if(sum == 0) {
-        return -2;
-      }
-
-      double noise = dis(gen) * 1e-5;
-      double entropy;
-      double main_sum = 0;
-      double log_sum = log(sum);
-
-      if(nb_possibilities == 1) {
-        entropy = 0;
-      } else {
-        for(unsigned k = 0; k<patterns.size(); k++) {
-          if(wave.get(i,k)) {
-            main_sum += plogp_patterns_frequencies[k];
-          }
-        }
-        entropy = log_sum - main_sum / sum;
-      }
-
-      if(entropy > 0 && entropy + noise < min) {
-        min = entropy + noise;
-        argmin = i;
-      }
-    }
-    return argmin;
+    return wave.get_min_entropy(gen);
   }
 
   enum ObserveStatus {
@@ -222,6 +182,8 @@ public:
     }
 
     double s = 0;
+
+    std::uniform_real_distribution<> dis(0,1);
     double random_value = dis(gen);
     unsigned chosen_value = patterns.size() - 1;
 
