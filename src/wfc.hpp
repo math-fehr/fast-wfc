@@ -160,10 +160,6 @@ public:
     }
   }
 
-  int get_min_entropy() {
-    return wave.get_min_entropy(gen);
-  }
-
   enum ObserveStatus {
     success,
     failure,
@@ -171,7 +167,7 @@ public:
   };
 
   ObserveStatus observe() {
-    int argmin = get_min_entropy();
+    int argmin = wave.get_min_entropy(gen);
     if(argmin == -2) {
       return failure;
     }

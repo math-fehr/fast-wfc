@@ -13,6 +13,9 @@ private:
   vector<uint8_t> data;
   vector<unsigned> patterns_frequencies;
   vector<double> plogp_patterns_frequencies;
+  vector<double> plogp_memoisation;
+  vector<unsigned> s_memoisation;
+  vector<unsigned> nb_possibilities_memoisation;
   unsigned width;
   unsigned height;
   unsigned pattern_size;
@@ -24,8 +27,17 @@ public:
     patterns_frequencies(patterns_frequencies), width(width), height(height),
     pattern_size(patterns_frequencies.size())
   {
+    double base_entropy = 0;
+    unsigned base_s = 0;
     for(unsigned i = 0; i < pattern_size; i++) {
       plogp_patterns_frequencies.push_back((double)patterns_frequencies[i] * log(patterns_frequencies[i]));
+      base_entropy += plogp_patterns_frequencies[i];
+      base_s += patterns_frequencies[i];
+    }
+    for(unsigned i = 0; i < width * height; i++) {
+      plogp_memoisation.push_back(base_entropy);
+      s_memoisation.push_back(base_s);
+      nb_possibilities_memoisation.push_back(pattern_size);
     }
     data = vector<uint8_t>(width * height * pattern_size, 1);
   }
@@ -35,7 +47,18 @@ public:
   }
 
   void set(unsigned index, unsigned pattern, bool value) {
+    bool old_value = data[index * pattern_size + pattern];
+    if(old_value == value) {
+      return;
+    }
     data[index * pattern_size + pattern] = value;
+    plogp_memoisation[index] -= plogp_patterns_frequencies[pattern];
+    s_memoisation[index] -= patterns_frequencies[pattern];
+    nb_possibilities_memoisation[index]--;
+    if(nb_possibilities_memoisation[index] == 0) {
+      s_memoisation[index] = 0;
+      plogp_memoisation[index] = 0;
+    }
   }
 
   bool get(unsigned i, unsigned j, unsigned pattern) {
@@ -47,40 +70,27 @@ public:
   }
 
   int get_min_entropy(minstd_rand& gen) {
+
     std::uniform_real_distribution<> dis(0,1);
     double min = numeric_limits<double>::infinity();
     int argmin = -1;
     for(unsigned i = 0; i < get_size(); i++) {
-      double sum = 0;
-      int nb_possibilities = 0;
-      for(unsigned k = 0; k < pattern_size; k++) {
-        if(get(i,k)) {
-          sum += patterns_frequencies[k];
-          nb_possibilities++;
-        }
-      }
-
+      double sum = s_memoisation[i];
       if(sum == 0) {
         return -2;
       }
 
-      double noise = dis(gen) * 1e-5;
-      double entropy;
-      double main_sum = 0;
-      double log_sum = log(sum);
-
+      double nb_possibilities = nb_possibilities_memoisation[i];
       if(nb_possibilities == 1) {
-        entropy = 0;
-      } else {
-        for(unsigned k = 0; k<pattern_size; k++) {
-          if(get(i,k)) {
-            main_sum += plogp_patterns_frequencies[k];
-          }
-        }
-        entropy = log_sum - main_sum / sum;
+        continue;
       }
 
-      if(entropy > 0 && entropy + noise < min) {
+      double noise = dis(gen) * 1e-5;
+      double log_sum = log(sum);
+      double main_sum = plogp_memoisation[i];
+      double entropy = log_sum - main_sum / sum;
+
+      if(entropy + noise < min) {
         min = entropy + noise;
         argmin = i;
       }
