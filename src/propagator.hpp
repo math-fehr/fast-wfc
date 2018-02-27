@@ -74,8 +74,8 @@ public:
           }
           propagating.set(y1, x1, false);
 
-          for(int dx = -int(n_width) + 1; dx < int(n_width); dx++) {
-            for(int dy = -int(n_height) + 1; dy < int(n_height); dy++) {
+          for(int dx = -1; dx < 2; dx++) {
+            for(int dy = -1; dy < 2; dy++) {
               int x2, y2;
               if(periodic_output) {
                 x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
