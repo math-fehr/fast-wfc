@@ -15,6 +15,7 @@ private:
   vector<double> plogp_patterns_frequencies;
   vector<double> plogp_memoisation;
   vector<unsigned> s_memoisation;
+  vector<double> logs_memoisation;
   vector<unsigned> nb_possibilities_memoisation;
   unsigned width;
   unsigned height;
@@ -34,9 +35,11 @@ public:
       base_entropy += plogp_patterns_frequencies[i];
       base_s += patterns_frequencies[i];
     }
+    double log_base_s = log(base_s);
     for(unsigned i = 0; i < width * height; i++) {
       plogp_memoisation.push_back(base_entropy);
       s_memoisation.push_back(base_s);
+      logs_memoisation.push_back(log_base_s);
       nb_possibilities_memoisation.push_back(pattern_size);
     }
     data = vector<uint8_t>(width * height * pattern_size, 1);
@@ -54,10 +57,10 @@ public:
     data[index * pattern_size + pattern] = value;
     plogp_memoisation[index] -= plogp_patterns_frequencies[pattern];
     s_memoisation[index] -= patterns_frequencies[pattern];
+    logs_memoisation[index] = log(s_memoisation[index]);
     nb_possibilities_memoisation[index]--;
     if(nb_possibilities_memoisation[index] == 0) {
       s_memoisation[index] = 0;
-      plogp_memoisation[index] = 0;
     }
   }
 
@@ -70,7 +73,6 @@ public:
   }
 
   int get_min_entropy(minstd_rand& gen) {
-
     std::uniform_real_distribution<> dis(0,1);
     double min = numeric_limits<double>::infinity();
     int argmin = -1;
@@ -86,7 +88,7 @@ public:
       }
 
       double noise = dis(gen) * 1e-5;
-      double log_sum = log(sum);
+      double log_sum = logs_memoisation[i];
       double main_sum = plogp_memoisation[i];
       double entropy = log_sum - main_sum / sum;
 
