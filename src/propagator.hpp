@@ -11,8 +11,6 @@ class Propagator {
 private:
   Matrix3D<vector<unsigned>> propagator;
   Matrix<bool> propagating;
-  vector<unsigned> to_propagate;
-  vector<bool> is_propagating;
   unsigned wave_width;
   unsigned wave_height;
   unsigned n_width;
@@ -24,7 +22,6 @@ public:
 
   Propagator(unsigned wave_width, unsigned wave_height, unsigned n_width, unsigned n_height, bool periodic_output) :
     propagating(wave_width, wave_height),
-    is_propagating(wave_width * wave_height, false),
     wave_width(wave_width), wave_height(wave_height),
     n_width(n_width), n_height(n_height), periodic_output(periodic_output) {
   }
