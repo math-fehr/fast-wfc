@@ -15,7 +15,7 @@ struct S {
 
 class Propagator {
 private:
-  vector<vector<unsigned>> propagator[4];
+  vector<array<vector<unsigned>, 4>> propagator;
   Matrix3D<S> compatible;
   vector<tuple<unsigned, unsigned, unsigned>> propagating;
   unsigned wave_width;
@@ -42,13 +42,12 @@ public:
   void init(const vector<Matrix<T>>& patterns) {
     patterns_size = patterns.size();
     compatible = Matrix3D<S>(wave_width, wave_height, patterns_size);
-
-    for(unsigned direction = 0; direction < 4; direction++) {
-      propagator[direction] = vector<vector<unsigned>>(patterns_size);
-      for(unsigned k1 = 0; k1 < patterns_size; k1++) {
+    propagator = vector<array<vector<unsigned>, 4>>(patterns_size);
+    for(unsigned k1 = 0; k1 < patterns_size; k1++) {
+      for(unsigned direction = 0; direction < 4; direction++) {
         for(unsigned k2 = 0; k2 < patterns_size; k2++) {
           if(agrees(patterns[k1], patterns[k2], directions_x[direction], directions_y[direction])) {
-            propagator[direction][k1].push_back(k2);
+            propagator[k1][direction].push_back(k2);
           }
         }
       }
@@ -59,7 +58,7 @@ public:
         for(unsigned pattern = 0; pattern < patterns_size; pattern++) {
           S value;
           for(int direction = 0; direction < 4; direction++) {
-            value.data[direction] = propagator[inv_direction[direction]][pattern].size();
+            value.data[direction] = propagator[pattern][inv_direction[direction]].size();
           }
           compatible.set(y, x, pattern, value);
         }
@@ -109,7 +108,7 @@ public:
         }
 
         unsigned i2 = x2 + y2 * wave.get_width();
-        const vector<unsigned>& patterns = propagator[direction][pattern];
+        const vector<unsigned>& patterns = propagator[pattern][direction];
         for(auto it = patterns.begin(), it_end = patterns.end(); it < it_end; ++it) {
           S& value = compatible.get(y2, x2, *it);
           value.data[direction]--;
@@ -201,7 +200,7 @@ public:
 
   void propagate_aux(Wave& wave, unsigned x2, unsigned y2, unsigned direction, unsigned pattern) {
     unsigned i2 = x2 + y2 * wave.get_width();
-    const vector<unsigned>& patterns = propagator[direction][pattern];
+    const vector<unsigned>& patterns = propagator[pattern][direction];
     for(auto it = patterns.begin(), it_end = patterns.end(); it < it_end; ++it) {
       S& value = compatible.get(y2, x2, *it);
       value.data[direction]--;
