@@ -98,8 +98,9 @@ public:
               for(unsigned k2 = 0; k2 < patterns_size; k2++) {
                 if(wave.get(i2, k2)) {
                   bool b = false;
-                  for(const unsigned& pattern : propagator.get(n_width - 1 - dx, n_height - 1 - dy, k2)) {
-                    b = wave.get(y1, x1, pattern);
+                  const vector<unsigned>& patterns = propagator.get(n_width - 1 - dx, n_height - 1 - dy, k2);
+                  for(auto it = patterns.begin(), it_end = patterns.end(); it < it_end; ++it) {
+                    b = wave.get(y1, x1, *it);
                     if(b) {
                       break;
                     }
