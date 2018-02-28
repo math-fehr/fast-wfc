@@ -117,7 +117,7 @@ public:
       for(unsigned k = 0; k < patterns.size(); k++) {
         if(ground_matrix_id != k) {
           wave.set(wave.get_height() - 1, j, k, false);
-          change(wave.get_height() - 1, j);
+          change(wave.get_height() - 1, j, k);
         }
       }
     }
@@ -125,7 +125,7 @@ public:
     for(unsigned i = 0; i < wave.get_height() - 1; i++) {
       for(unsigned j = 0; j < wave.get_width(); j++) {
         wave.set(i, j, ground_matrix_id, false);
-        change(i,j);
+        change(i,j, ground_matrix_id);
       }
     }
 
@@ -197,20 +197,17 @@ public:
     }
 
     for(unsigned k = 0; k < patterns.size(); k++) {
-      wave.set(argmin, k, k == chosen_value);
+      if(wave.get(argmin, k) != (k == chosen_value)) {
+        change(argmin / wave.get_width(), argmin % wave.get_width(), k);
+        wave.set(argmin, k, false);
+      }
     }
-
-    change(argmin);
 
     return to_continue;
   }
 
-  void change(unsigned i) {
-    propagator.add_to_propagator(i);
-  }
-
-  void change(unsigned i, unsigned j) {
-    change(j + wave.get_height() * i);
+  void change(unsigned i, unsigned j, unsigned pattern) {
+    propagator.add_to_propagator(i, j, pattern);
   }
 };
 
