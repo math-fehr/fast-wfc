@@ -82,8 +82,8 @@ void read_config_file(const string& config_path) {
     string ground = get_attribute(node, "ground", "0");
     string symmetry = get_attribute(node, "symmetry", "8");
     string screenshots = get_attribute(node, "screenshots", "2");
-    string width = get_attribute(node, "width", "48");
-    string height = get_attribute(node, "width", "48");
+    string width = get_attribute(node, "width", "96");
+    string height = get_attribute(node, "width", "96");
 
     int N_value = stoi(N);
     int width_value = stoi(width);

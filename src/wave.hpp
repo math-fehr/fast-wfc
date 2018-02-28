@@ -5,6 +5,7 @@
 #include <limits>
 #include <math.h>
 #include <random>
+#include <iostream>
 
 using namespace std;
 
@@ -17,6 +18,9 @@ private:
   vector<unsigned> s_memoisation;
   vector<double> logs_memoisation;
   vector<unsigned> nb_possibilities_memoisation;
+  vector<double> entropy_memoisation;
+  bool is_impossible;
+  double half_min_plogp;
   unsigned width;
   unsigned height;
   unsigned pattern_size;
@@ -28,10 +32,13 @@ public:
     patterns_frequencies(patterns_frequencies), width(width), height(height),
     pattern_size(patterns_frequencies.size())
   {
+    is_impossible = false;
     double base_entropy = 0;
     unsigned base_s = 0;
+    double half_min_plogp = numeric_limits<double>::infinity();
     for(unsigned i = 0; i < pattern_size; i++) {
       plogp_patterns_frequencies.push_back((double)patterns_frequencies[i] * log(patterns_frequencies[i]));
+      half_min_plogp = min(half_min_plogp, plogp_patterns_frequencies[i] / 2.0);
       base_entropy += plogp_patterns_frequencies[i];
       base_s += patterns_frequencies[i];
     }
@@ -41,6 +48,7 @@ public:
       s_memoisation.push_back(base_s);
       logs_memoisation.push_back(log_base_s);
       nb_possibilities_memoisation.push_back(pattern_size);
+      entropy_memoisation.push_back(logs_memoisation[i] - plogp_memoisation[i] / s_memoisation[i]);
     }
     data = vector<uint8_t>(width * height * pattern_size, 1);
   }
@@ -59,8 +67,9 @@ public:
     s_memoisation[index] -= patterns_frequencies[pattern];
     logs_memoisation[index] = log(s_memoisation[index]);
     nb_possibilities_memoisation[index]--;
+    entropy_memoisation[index] = logs_memoisation[index] - plogp_memoisation[index] / s_memoisation[index];
     if(nb_possibilities_memoisation[index] == 0) {
-      s_memoisation[index] = 0;
+      is_impossible = true;
     }
   }
 
@@ -73,28 +82,26 @@ public:
   }
 
   int get_min_entropy(minstd_rand& gen) {
+    if(is_impossible) {
+      return -2;
+    }
     std::uniform_real_distribution<> dis(0,1);
     double min = numeric_limits<double>::infinity();
     int argmin = -1;
     for(unsigned i = 0; i < get_size(); i++) {
-      double sum = s_memoisation[i];
-      if(sum == 0) {
-        return -2;
-      }
-
       double nb_possibilities = nb_possibilities_memoisation[i];
       if(nb_possibilities == 1) {
         continue;
       }
 
-      double noise = dis(gen) * 1e-5;
-      double log_sum = logs_memoisation[i];
-      double main_sum = plogp_memoisation[i];
-      double entropy = log_sum - main_sum / sum;
+      double entropy = entropy_memoisation[i];
 
-      if(entropy + noise < min) {
-        min = entropy + noise;
-        argmin = i;
+      if(entropy <= min + half_min_plogp) {
+        double noise = dis(gen) * half_min_plogp;
+        if(entropy + noise < min) {
+          min = entropy + noise;
+          argmin = i;
+        }
       }
     }
     return argmin;
