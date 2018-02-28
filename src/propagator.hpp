@@ -4,12 +4,13 @@
 #include "matrix.hpp"
 #include "matrix3D.hpp"
 #include "wave.hpp"
+#include "direction.hpp"
 
 using namespace std;
 
 class Propagator {
 private:
-  Matrix3D<vector<unsigned>> propagator;
+  vector<vector<unsigned>> propagator[4];
   Matrix<bool> propagating;
   unsigned wave_width;
   unsigned wave_height;
@@ -33,14 +34,12 @@ public:
   template<typename T>
   void init(const vector<Matrix<T>>& patterns) {
     patterns_size = patterns.size();
-    propagator = Matrix3D<vector<unsigned>>(2 * n_width - 1, 2 * n_height - 1, patterns.size());
-    for(unsigned x = 0; x < 2 * n_width - 1; x++) {
-      for(unsigned y = 0; y < 2 * n_height - 1; y++) {
-        for(unsigned k1 = 0; k1 < patterns.size(); k1++) {
-          for(unsigned k2 = 0; k2 < patterns.size(); k2++) {
-            if(agrees(patterns[k1], patterns[k2], x - n_width + 1, y - n_height + 1)) {
-              propagator.get(x,y,k1).push_back(k2);
-            }
+    for(unsigned direction = 0; direction < 4; direction++) {
+      propagator[direction] = vector<vector<unsigned>>(patterns_size);
+      for(unsigned k1 = 0; k1 < patterns_size; k1++) {
+        for(unsigned k2 = 0; k2 < patterns_size; k2++) {
+          if(agrees(patterns[k1], patterns[k2], directions_x[direction], directions_y[direction])) {
+            propagator[direction][k1].push_back(k2);
           }
         }
       }
@@ -74,42 +73,42 @@ public:
           }
           propagating.set(y1, x1, false);
 
-          for(int dx = -1; dx < 2; dx++) {
-            for(int dy = -1; dy < 2; dy++) {
-              if(abs(dx) + abs(dy) != 1) {
+          for(unsigned direction = 0; direction < 4; direction++) {
+            int dx = directions_x[direction];
+            int dy = directions_y[direction];
+            if(abs(dx) + abs(dy) != 1) {
+              continue;
+            }
+            int x2, y2;
+            if(periodic_output) {
+              x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
+              y2 = ((int)y1 + dy + (int)wave.get_height()) % wave.get_height();
+            } else {
+              x2 = x1 + dx;
+              y2 = y1 + dy;
+              if(x2 < 0 || x2 >= (int)wave.get_width()) {
                 continue;
               }
-              int x2, y2;
-              if(periodic_output) {
-                x2 = ((int)x1 + dx + (int)wave.get_width()) % wave.get_width();
-                y2 = ((int)y1 + dy + (int)wave.get_height()) % wave.get_height();
-              } else {
-                x2 = x1 + dx;
-                y2 = y1 + dy;
-                if(x2 < 0 || x2 >= (int)wave.get_width()) {
-                  continue;
-                }
-                if(y2 < 0 || y2 >= (int)wave.get_height()) {
-                  continue;
-                }
+              if(y2 < 0 || y2 >= (int)wave.get_height()) {
+                continue;
               }
+            }
 
-              unsigned i2 = x2 + y2 * wave.get_width();
-              for(unsigned k2 = 0; k2 < patterns_size; k2++) {
-                if(wave.get(i2, k2)) {
-                  bool b = false;
-                  const vector<unsigned>& patterns = propagator.get(n_width - 1 - dx, n_height - 1 - dy, k2);
-                  for(auto it = patterns.begin(), it_end = patterns.end(); it < it_end; ++it) {
-                    b = wave.get(y1, x1, *it);
-                    if(b) {
-                      break;
-                    }
+            unsigned i2 = x2 + y2 * wave.get_width();
+            for(unsigned k2 = 0; k2 < patterns_size; k2++) {
+              if(wave.get(i2, k2)) {
+                bool b = false;
+                const vector<unsigned>& patterns = propagator[direction][k2];
+                for(auto it = patterns.begin(), it_end = patterns.end(); it < it_end; ++it) {
+                  b = wave.get(y1, x1, *it);
+                  if(b) {
+                    break;
                   }
-                  if(!b) {
-                    should_propagate = true;
-                    add_to_propagator(i2);
-                    wave.set(i2, k2, false);
-                  }
+                }
+                if(!b) {
+                  should_propagate = true;
+                  add_to_propagator(i2);
+                  wave.set(i2, k2, false);
                 }
               }
             }
