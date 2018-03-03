@@ -5,10 +5,31 @@
 
 template<typename T>
 class OverlappingWFC {
-private:
-  WFC<T> wfc;
-  Matrix<T> input;
 public:
+
+  static Matrix<T> get_output(const WFC& wfc, const vector<Matrix<T>>& patterns, const unsigned& pattern_size, const unsigned& output_width, const unsigned& output_height) {
+    Matrix<T> output = Matrix<T>(output_width, output_height);
+
+    if(wfc.periodic_output) {
+      for(unsigned y = 0; y < wfc.wave.height; y++) {
+        for(unsigned x = 0; x < wfc.wave.width; x++) {
+          output.get(y,x) = patterns[wfc.output_patterns.get(y,x)].get(0,0);
+        }
+      }
+    } else {
+      for(unsigned y = 0; y < wfc.wave.height; y++) {
+        for(unsigned x = 0; x < wfc.wave.width; x++) {
+          for(unsigned dy = 0; dy < pattern_size; dy++) {
+            for(unsigned dx = 0; dx < pattern_size; dx++) {
+              output.get(y + dy, x + dx) = patterns[wfc.output_patterns.get(y,x)].get(dy,dx);
+            }
+          }
+        }
+      }
+    }
+
+    return output;
+  }
 
   static Wave generate_initial_wave(const Matrix<T>& input, const unsigned& pattern_size, const vector<Matrix<T>>& patterns, const bool& ground, const bool& periodic_output, const unsigned& out_width, const unsigned& out_height, const vector<unsigned>& patterns_frequencies) {
     unsigned wave_width = periodic_output ? out_width : out_width - pattern_size + 1;
