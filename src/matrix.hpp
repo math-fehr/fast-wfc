@@ -3,47 +3,33 @@
 #include <vector>
 #include <ostream>
 #include "assert.h"
-
+#include <iostream>
 using namespace std;
 
 template<typename T>
 class Matrix {
 public:
-  unsigned height;
-  unsigned width;
+  const unsigned height;
+  const unsigned width;
   vector<T> data;
 
-  Matrix() {
-    width = 0;
-    height = 0;
-    data = vector<T>();
+  Matrix(unsigned width, unsigned height) noexcept :
+    height(height), width(width), data(width * height) {
   }
 
-  Matrix(unsigned width, unsigned height) {
-    this->width = width;
-    this->height = height;
-    this->data = vector<T>(width * height);
-  }
-
-  Matrix(const Matrix& m) {
-    this->width = m.width;
-    this->height = m.height;
-    this->data = m.data;
-  }
-
-  const T& get(unsigned i, unsigned j) const {
+  const T& get(unsigned i, unsigned j) const noexcept {
     return data[j + i * width];
   }
 
-  T& get(unsigned i, unsigned j) {
+  T& get(unsigned i, unsigned j) noexcept {
     return data[j + i * width];
   }
 
-  void set(unsigned i, unsigned j, T value) {
+  void set(unsigned i, unsigned j, T value) noexcept {
     data[j + i * width] = value;
   }
 
-  Matrix<T> reflected() {
+  Matrix<T> reflected() const noexcept {
     Matrix<T> result = Matrix<T>(width, height);
     for(unsigned y = 0; y < height; y++) {
       for(unsigned x = 0; x < width; x++) {
@@ -53,7 +39,7 @@ public:
     return result;
   }
 
-  Matrix<T> rotated() {
+  Matrix<T> rotated() const noexcept {
     Matrix<T> result = Matrix<T>(height, width);
     for(unsigned y = 0; y < width; y++) {
       for(unsigned x = 0; x < height; x++) {
@@ -63,7 +49,7 @@ public:
     return result;
   }
 
-  Matrix<T> get_sub_matrix(unsigned y, unsigned x, unsigned sub_width, unsigned sub_height) {
+  Matrix<T> get_sub_matrix(unsigned y, unsigned x, unsigned sub_width, unsigned sub_height) const noexcept {
     Matrix<T> sub_matrix = Matrix<T>(sub_width, sub_height);
     for(unsigned ki = 0; ki < sub_height; ki++) {
       for(unsigned kj = 0; kj < sub_width; kj++) {
@@ -73,7 +59,7 @@ public:
     return sub_matrix;
   }
 
-  bool operator==(const Matrix& m) const {
+  bool operator==(const Matrix& m) const noexcept {
     if(height != m.height) {
       return false;
     }

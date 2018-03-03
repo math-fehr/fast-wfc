@@ -21,16 +21,15 @@ private:
   vector<double> entropy_memoisation;
   bool is_impossible;
   double half_min_plogp;
-  unsigned width;
-  unsigned height;
   unsigned pattern_size;
 public:
-  Wave() {}
-
+  const unsigned width;
+  const unsigned height;
+  const unsigned size;
 
   Wave(unsigned width, unsigned height, const vector<unsigned>& patterns_frequencies) :
-    patterns_frequencies(patterns_frequencies), width(width), height(height),
-    pattern_size(patterns_frequencies.size())
+    patterns_frequencies(patterns_frequencies), pattern_size(patterns_frequencies.size()),
+    width(width), height(height), size(width * height)
   {
     is_impossible = false;
     double base_entropy = 0;
@@ -88,14 +87,13 @@ public:
     std::uniform_real_distribution<> dis(0,1);
     double min = numeric_limits<double>::infinity();
     int argmin = -1;
-    for(unsigned i = 0; i < get_size(); i++) {
+    for(unsigned i = 0; i < size; i++) {
       double nb_possibilities = nb_possibilities_memoisation[i];
       if(nb_possibilities == 1) {
         continue;
       }
 
       double entropy = entropy_memoisation[i];
-
       if(entropy <= min + half_min_plogp) {
         double noise = dis(gen) * half_min_plogp;
         if(entropy + noise < min) {
@@ -107,15 +105,4 @@ public:
     return argmin;
   }
 
-  unsigned get_width() {
-    return width;
-  }
-
-  unsigned get_height() {
-    return height;
-  }
-
-  unsigned get_size() {
-    return width * height;
-  }
 };

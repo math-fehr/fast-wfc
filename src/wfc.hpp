@@ -15,15 +15,14 @@ using namespace std;
 template<typename T>
 class WFC {
 public:
-  //std::mt19937 gen;
   minstd_rand gen;
 
   Matrix<T> input;
   Matrix<T> output;
-  Matrix<unsigned> output_patterns;
-  vector<unsigned> patterns_frequencies;
-  vector<Matrix<T>> patterns;
   Wave wave;
+  Matrix<unsigned> output_patterns;
+  const vector<unsigned> patterns_frequencies;
+  const vector<Matrix<T>> patterns;
   Propagator propagator;
 
   unsigned symmetry;
@@ -34,22 +33,30 @@ public:
   unsigned n_height;
 
   WFC(const Matrix<T>& input, unsigned out_width, unsigned out_height, unsigned n_width, unsigned n_height,
-      unsigned symmetry, bool periodic_input, bool periodic_output, int ground, int seed = 6683)
+      unsigned symmetry, bool periodic_input, bool periodic_output, int ground, int seed,
+      vector<unsigned> patterns_frequencies, vector<Matrix<T>> patterns,
+      vector<array<vector<unsigned>, 4>> propagator, Wave wave)
     : gen(seed) , input(input), output(out_width, out_height),
+      wave(wave),
+      output_patterns(wave.width, wave.height),
+      patterns_frequencies(patterns_frequencies), patterns(patterns),
+      propagator(wave.width, wave.height, periodic_output, propagator),
       symmetry(symmetry), ground(ground),
       periodic_input(periodic_input), periodic_output(periodic_output), n_width(n_width), n_height(n_height)
   {
-    unsigned wave_width = periodic_output ? out_width : out_width - n_width + 1;
-    unsigned wave_height = periodic_output ? out_height : out_height - n_height + 1;
-    propagator = Propagator(wave_width, wave_height, n_width, n_height, periodic_output);
-    output_patterns = Matrix<unsigned>(wave_width, wave_height);
+    for(unsigned i = 0; i < wave.height; i++) {
+      for(unsigned j = 0; j < wave.width; j++) {
+        for(unsigned p = 0; p < patterns.size(); p++) {
+          if(!wave.get(i,j,p)) {
+            change(i, j, p);
+          }
+        }
+      }
+    }
+    this->propagator.propagate(this->wave);
   }
 
   bool run() {
-    init_patterns();
-    propagator.init(patterns);
-    wave = Wave(output_patterns.width, output_patterns.height, patterns_frequencies);
-    init_ground();
     while(true) {
       ObserveStatus result = observe();
       if(result == failure) {
@@ -62,78 +69,8 @@ public:
     }
   }
 
-  unsigned get_id_of_matrix(const Matrix<T>& matrix) {
-    for(unsigned i = 0; i<patterns.size(); i++) {
-      if(matrix == patterns[i]) {
-        return i;
-      }
-    }
-    assert(false);
-  }
-
-  void add_pattern(const Matrix<T>& sub_matrix, unordered_map<Matrix<T>, unsigned>& matrix_frequencies) {
-    vector<Matrix<T>> sym(8);
-    sym[0] = sub_matrix;
-    sym[1] = sym[0].reflected();
-    sym[2] = sym[0].rotated();
-    sym[3] = sym[2].reflected();
-    sym[4] = sym[2].rotated();
-    sym[5] = sym[4].reflected();
-    sym[6] = sym[4].rotated();
-    sym[7] = sym[6].reflected();
-
-    for(unsigned k = 0; k<symmetry; k++) {
-      matrix_frequencies[sym[k]] += 1;
-      if(matrix_frequencies[sym[k]] == 1) {
-        patterns.push_back(sym[k]);
-      }
-    }
-  }
-
-  void init_patterns() {
-    unordered_map<Matrix<T>, unsigned> matrix_frequencies;
-    Matrix<T> sub_matrix = Matrix<T>(n_width, n_height);
-    unsigned max_i = periodic_input ? input.height : input.height - n_height + 1;
-    unsigned max_j = periodic_input ? input.width : input.width - n_width + 1;
-    for(unsigned i = 0; i < max_i; i++) {
-      for(unsigned j = 0; j < max_j; j++) {
-        add_pattern(input.get_sub_matrix(i,j,n_width,n_height), matrix_frequencies);
-      }
-    }
-
-    for (const Matrix<T>& pattern : patterns) {
-      patterns_frequencies.push_back(matrix_frequencies[pattern]);
-    }
-  }
-
-  void init_ground() {
-    if(!ground) {
-      return;
-    }
-    Matrix<T> ground_matrix = input.get_sub_matrix(input.height - 1, input.width / 2, n_width, n_height);
-    unsigned ground_matrix_id = get_id_of_matrix(ground_matrix);
-
-    for(unsigned j = 0; j < wave.get_width(); j++) {
-      for(unsigned k = 0; k < patterns.size(); k++) {
-        if(ground_matrix_id != k) {
-          wave.set(wave.get_height() - 1, j, k, false);
-          change(wave.get_height() - 1, j, k);
-        }
-      }
-    }
-
-    for(unsigned i = 0; i < wave.get_height() - 1; i++) {
-      for(unsigned j = 0; j < wave.get_width(); j++) {
-        wave.set(i, j, ground_matrix_id, false);
-        change(i,j, ground_matrix_id);
-      }
-    }
-
-    propagator.propagate(wave);
-  }
-
   void wave_to_output() {
-    for(unsigned i = 0; i< wave.get_size(); i++) {
+    for(unsigned i = 0; i< wave.size; i++) {
       for(unsigned k = 0; k < patterns.size(); k++) {
         if(wave.get(i, k)) {
           output_patterns.data[i] = k;
@@ -142,14 +79,14 @@ public:
     }
 
     if(periodic_output) {
-      for(unsigned y = 0; y < wave.get_height(); y++) {
-        for(unsigned x = 0; x < wave.get_width(); x++) {
+      for(unsigned y = 0; y < wave.height; y++) {
+        for(unsigned x = 0; x < wave.width; x++) {
           output.get(y,x) = patterns[output_patterns.get(y,x)].get(0,0);
         }
       }
     } else {
-      for(unsigned y = 0; y < wave.get_height(); y++) {
-        for(unsigned x = 0; x < wave.get_width(); x++) {
+      for(unsigned y = 0; y < wave.height; y++) {
+        for(unsigned x = 0; x < wave.width; x++) {
           for(unsigned dy = 0; dy < n_height; dy++) {
             for(unsigned dx = 0; dx < n_width; dx++) {
               output.get(y + dy, x + dx) = patterns[output_patterns.get(y,x)].get(dy,dx);
@@ -198,7 +135,7 @@ public:
 
     for(unsigned k = 0; k < patterns.size(); k++) {
       if(wave.get(argmin, k) != (k == chosen_value)) {
-        change(argmin / wave.get_width(), argmin % wave.get_width(), k);
+        change(argmin / wave.width, argmin % wave.width, k);
         wave.set(argmin, k, false);
       }
     }
