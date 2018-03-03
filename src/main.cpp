@@ -102,7 +102,7 @@ void read_config_file(const string& config_path) {
         pair<vector<unsigned>, vector<Matrix<Color>>> patterns = OverlappingWFC<Color>::get_patterns(m, N_value, periodic_input_value, symmetry_value);
         vector<array<vector<unsigned>, 4>> propagator = OverlappingWFC<Color>::generate_propagator(patterns.second);
         Wave wave = OverlappingWFC<Color>::generate_initial_wave(m, N_value, patterns.second, ground_value, periodic_output_value, width_value, height_value, patterns.first);
-        WFC wfc = WFC(N_value, N_value, symmetry_value, periodic_output_value, 6683 + test * screenshots_value + i, patterns.first, propagator, wave);
+        WFC wfc = WFC(periodic_output_value, 6683 + test * screenshots_value + i, patterns.first, propagator, wave);
         bool success = wfc.run();
         if(success) {
           write_file("results/" + name + ".png", OverlappingWFC<Color>::get_output(wfc, patterns.second, N_value, width_value, height_value));

@@ -22,21 +22,15 @@ public:
   const unsigned nb_patterns;
   Propagator propagator;
 
-  unsigned symmetry;
-  bool periodic_output;
-  unsigned n_width;
-  unsigned n_height;
+  const bool periodic_output;
 
-  WFC(unsigned n_width, unsigned n_height,
-      unsigned symmetry, bool periodic_output, int seed,
-      vector<unsigned> patterns_frequencies,
+  WFC(bool periodic_output, int seed, vector<unsigned> patterns_frequencies,
       vector<array<vector<unsigned>, 4>> propagator, Wave wave)
     : gen(seed), wave(wave),
       output_patterns(wave.width, wave.height),
       patterns_frequencies(patterns_frequencies), nb_patterns(propagator.size()),
       propagator(wave.width, wave.height, periodic_output, propagator),
-      symmetry(symmetry),
-      periodic_output(periodic_output), n_width(n_width), n_height(n_height)
+      periodic_output(periodic_output)
   {
     for(unsigned i = 0; i < wave.height; i++) {
       for(unsigned j = 0; j < wave.width; j++) {
