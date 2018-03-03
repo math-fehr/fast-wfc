@@ -9,65 +9,69 @@
 
 using namespace std;
 
+struct EntropyMemoisation {
+  vector<double> plogp;
+  vector<unsigned> sum;
+  vector<double> log_sum;
+  vector<unsigned> nb_possibilities;
+  vector<double> entropy;
+};
+
 class Wave {
 private:
   vector<uint8_t> data;
-  vector<unsigned> patterns_frequencies;
+  const vector<unsigned> patterns_frequencies;
   vector<double> plogp_patterns_frequencies;
-  vector<double> plogp_memoisation;
-  vector<unsigned> s_memoisation;
-  vector<double> logs_memoisation;
-  vector<unsigned> nb_possibilities_memoisation;
-  vector<double> entropy_memoisation;
+  EntropyMemoisation memoisation;
   bool is_impossible;
   double half_min_plogp;
-  unsigned pattern_size;
+  unsigned nb_patterns;
+
 public:
   const unsigned width;
   const unsigned height;
   const unsigned size;
 
   Wave(unsigned width, unsigned height, const vector<unsigned>& patterns_frequencies) :
-    patterns_frequencies(patterns_frequencies), pattern_size(patterns_frequencies.size()),
+    patterns_frequencies(patterns_frequencies), nb_patterns(patterns_frequencies.size()),
     width(width), height(height), size(width * height)
   {
     is_impossible = false;
     double base_entropy = 0;
     unsigned base_s = 0;
     double half_min_plogp = numeric_limits<double>::infinity();
-    for(unsigned i = 0; i < pattern_size; i++) {
+    for(unsigned i = 0; i < nb_patterns; i++) {
       plogp_patterns_frequencies.push_back((double)patterns_frequencies[i] * log(patterns_frequencies[i]));
       half_min_plogp = min(half_min_plogp, plogp_patterns_frequencies[i] / 2.0);
       base_entropy += plogp_patterns_frequencies[i];
       base_s += patterns_frequencies[i];
     }
     double log_base_s = log(base_s);
-    for(unsigned i = 0; i < width * height; i++) {
-      plogp_memoisation.push_back(base_entropy);
-      s_memoisation.push_back(base_s);
-      logs_memoisation.push_back(log_base_s);
-      nb_possibilities_memoisation.push_back(pattern_size);
-      entropy_memoisation.push_back(logs_memoisation[i] - plogp_memoisation[i] / s_memoisation[i]);
-    }
-    data = vector<uint8_t>(width * height * pattern_size, 1);
+    double entropy_base = log_base_s - base_entropy / base_s;
+    memoisation.plogp = vector<double>(width * height, base_entropy);
+    memoisation.sum = vector<unsigned>(width * height, base_s);
+    memoisation.log_sum = vector<double>(width * height, log_base_s);
+    memoisation.nb_possibilities = vector<unsigned>(width * height, nb_patterns);
+    memoisation.entropy = vector<double>(width * height, entropy_base);
+    data = vector<uint8_t>(width * height * nb_patterns, 1);
   }
 
   bool get(unsigned index, unsigned pattern) {
-    return data[index * pattern_size + pattern];
+    return data[index * nb_patterns + pattern];
   }
 
   void set(unsigned index, unsigned pattern, bool value) {
-    bool old_value = data[index * pattern_size + pattern];
+    bool old_value = data[index * nb_patterns + pattern];
     if(old_value == value) {
       return;
     }
-    data[index * pattern_size + pattern] = value;
-    plogp_memoisation[index] -= plogp_patterns_frequencies[pattern];
-    s_memoisation[index] -= patterns_frequencies[pattern];
-    logs_memoisation[index] = log(s_memoisation[index]);
-    nb_possibilities_memoisation[index]--;
-    entropy_memoisation[index] = logs_memoisation[index] - plogp_memoisation[index] / s_memoisation[index];
-    if(nb_possibilities_memoisation[index] == 0) {
+    data[index * nb_patterns + pattern] = value;
+    memoisation.plogp[index] -= plogp_patterns_frequencies[pattern];
+    memoisation.sum[index] -= patterns_frequencies[pattern];
+    memoisation.log_sum[index] = log(memoisation.sum[index]);
+    memoisation.nb_possibilities[index]--;
+    memoisation.entropy[index] = memoisation.log_sum[index] - memoisation.plogp[index] / memoisation.sum[index];
+    if(memoisation.nb_possibilities[index] == 0) {
       is_impossible = true;
     }
   }
@@ -88,12 +92,12 @@ public:
     double min = numeric_limits<double>::infinity();
     int argmin = -1;
     for(unsigned i = 0; i < size; i++) {
-      double nb_possibilities = nb_possibilities_memoisation[i];
+      double nb_possibilities = memoisation.nb_possibilities[i];
       if(nb_possibilities == 1) {
         continue;
       }
 
-      double entropy = entropy_memoisation[i];
+      double entropy = memoisation.entropy[i];
       if(entropy <= min + half_min_plogp) {
         double noise = dis(gen) * half_min_plogp;
         if(entropy + noise < min) {

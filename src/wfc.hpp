@@ -25,23 +25,13 @@ public:
   const bool periodic_output;
 
   WFC(bool periodic_output, int seed, vector<unsigned> patterns_frequencies,
-      vector<array<vector<unsigned>, 4>> propagator, Wave wave)
-    : gen(seed), wave(wave),
+      vector<array<vector<unsigned>, 4>> propagator, unsigned wave_width, unsigned wave_height)
+    : gen(seed), wave(wave_width, wave_height, patterns_frequencies),
       output_patterns(wave.width, wave.height),
       patterns_frequencies(patterns_frequencies), nb_patterns(propagator.size()),
       propagator(wave.width, wave.height, periodic_output, propagator),
       periodic_output(periodic_output)
   {
-    for(unsigned i = 0; i < wave.height; i++) {
-      for(unsigned j = 0; j < wave.width; j++) {
-        for(unsigned p = 0; p < nb_patterns; p++) {
-          if(!wave.get(i,j,p)) {
-            change(i, j, p);
-          }
-        }
-      }
-    }
-    this->propagator.propagate(this->wave);
   }
 
   bool run() {
@@ -105,7 +95,7 @@ public:
 
     for(unsigned k = 0; k < nb_patterns; k++) {
       if(wave.get(argmin, k) != (k == chosen_value)) {
-        change(argmin / wave.width, argmin % wave.width, k);
+        propagator.add_to_propagator(argmin / wave.width, argmin % wave.width, k);
         wave.set(argmin, k, false);
       }
     }
@@ -113,8 +103,15 @@ public:
     return to_continue;
   }
 
-  void change(unsigned i, unsigned j, unsigned pattern) {
-    propagator.add_to_propagator(i, j, pattern);
+  void propagate() {
+    propagator.propagate(wave);
+  }
+
+  void remove_wave_pattern(unsigned i, unsigned j, unsigned pattern) {
+    if(wave.get(i, j, pattern)) {
+      wave.set(i, j, pattern, false);
+      propagator.add_to_propagator(i, j, pattern);
+    }
   }
 };
 

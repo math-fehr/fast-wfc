@@ -31,32 +31,25 @@ public:
     return output;
   }
 
-  static Wave generate_initial_wave(const Matrix<T>& input, const unsigned& pattern_size, const vector<Matrix<T>>& patterns, const bool& ground, const bool& periodic_output, const unsigned& out_width, const unsigned& out_height, const vector<unsigned>& patterns_frequencies) {
-    unsigned wave_width = periodic_output ? out_width : out_width - pattern_size + 1;
-    unsigned wave_height = periodic_output ? out_height : out_height - pattern_size + 1;
-    Wave wave(wave_width, wave_height, patterns_frequencies);
 
-    if(ground) {
-      init_ground(wave, input, patterns, pattern_size);
-    }
-
-    return wave;
-  }
-
-  static void init_ground(Wave& wave, const Matrix<T>& input, const vector<Matrix<T>>& patterns, const unsigned& pattern_size) {
+  static void init_ground(WFC& wfc, const Matrix<T>& input, const vector<Matrix<T>>& patterns, const unsigned& pattern_size) {
     unsigned ground_pattern_id = get_ground_pattern_id(input, pattern_size, patterns);
 
-    for(unsigned j = 0; j < wave.width; j++) {
+    for(unsigned j = 0; j < wfc.wave.width; j++) {
       for(unsigned p = 0; p < patterns.size(); p++) {
-        wave.set(wave.height - 1, j, p, ground_pattern_id == p);
+        if(ground_pattern_id != p) {
+          wfc.remove_wave_pattern(wfc.wave.height - 1, j, p);
+        }
       }
     }
 
-    for(unsigned i = 0; i < wave.height - 1; i++) {
-      for(unsigned j = 0; j < wave.width; j++) {
-        wave.set(i, j, ground_pattern_id, false);
+    for(unsigned i = 0; i < wfc.wave.height - 1; i++) {
+      for(unsigned j = 0; j < wfc.wave.width; j++) {
+        wfc.remove_wave_pattern(i, j, ground_pattern_id);
       }
     }
+
+    wfc.propagate();
   }
 
   static unsigned get_ground_pattern_id(const Matrix<T>& input, const unsigned& pattern_size, const vector<Matrix<T>>& patterns) {

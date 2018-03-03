@@ -98,11 +98,16 @@ void read_config_file(const string& config_path) {
     cout << name << " started!" << endl;
     Matrix<Color> m = read_file("samples/" + name + ".png");
     for(int i = 0; i < screenshots_value; i++) {
+      pair<vector<unsigned>, vector<Matrix<Color>>> patterns = OverlappingWFC<Color>::get_patterns(m, N_value, periodic_input_value, symmetry_value);
+      vector<array<vector<unsigned>, 4>> propagator = OverlappingWFC<Color>::generate_propagator(patterns.second);
+
+      unsigned wave_width = periodic_output_value ? width_value : width_value - N_value + 1;
+      unsigned wave_height = periodic_output_value ? height_value : height_value - N_value + 1;
       for(unsigned test = 0; test < 10; test++) {
-        pair<vector<unsigned>, vector<Matrix<Color>>> patterns = OverlappingWFC<Color>::get_patterns(m, N_value, periodic_input_value, symmetry_value);
-        vector<array<vector<unsigned>, 4>> propagator = OverlappingWFC<Color>::generate_propagator(patterns.second);
-        Wave wave = OverlappingWFC<Color>::generate_initial_wave(m, N_value, patterns.second, ground_value, periodic_output_value, width_value, height_value, patterns.first);
-        WFC wfc = WFC(periodic_output_value, 6683 + test * screenshots_value + i, patterns.first, propagator, wave);
+        WFC wfc = WFC(periodic_output_value, 6683 + test * screenshots_value + i, patterns.first, propagator, wave_width, wave_height);
+        if(ground_value) {
+          OverlappingWFC<Color>::init_ground(wfc, m, patterns.second, N_value);
+        }
         bool success = wfc.run();
         if(success) {
           write_file("results/" + name + ".png", OverlappingWFC<Color>::get_output(wfc, patterns.second, N_value, width_value, height_value));
