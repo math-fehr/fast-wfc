@@ -3,12 +3,56 @@
 #include "wfc.hpp"
 #include <iostream>
 
+struct OverlappingWFCOptions {
+  bool periodic_input;
+  bool periodic_output;
+  unsigned out_width;
+  unsigned out_height;
+  unsigned symmetry;
+  bool ground;
+  unsigned pattern_size;
+  int seed;
+};
+
 template<typename T>
 class OverlappingWFC {
-public:
+private:
+  Matrix<T> input;
+  OverlappingWFCOptions options;
+  vector<Matrix<T>> patterns;
+  WFC wfc;
 
-  static Matrix<T> get_output(const WFC& wfc, const vector<Matrix<T>>& patterns, const unsigned& pattern_size, const unsigned& output_width, const unsigned& output_height) {
-    Matrix<T> output = Matrix<T>(output_width, output_height);
+  OverlappingWFC(const Matrix<T>& input, const OverlappingWFCOptions& options, const int& seed,
+                 const pair<vector<unsigned>, vector<Matrix<T>>>& patterns,
+                 const vector<array<vector<unsigned>, 4>>& propagator) :
+    input(input),
+    options(options),
+    patterns(patterns.second),
+    wfc(options.periodic_output, seed, patterns.first, propagator,
+        options.periodic_output ? options.out_width : options.out_width - options.pattern_size + 1,
+        options.periodic_output ? options.out_height : options.out_height - options.pattern_size + 1)
+  {
+    if(options.ground) {
+      init_ground(wfc, input, patterns.second, options);
+    }
+  }
+
+  OverlappingWFC(const Matrix<T>& input, const OverlappingWFCOptions& options, const int& seed,
+                 const pair<vector<unsigned>, vector<Matrix<T>>>& patterns) :
+    OverlappingWFC(input, options, seed, patterns, generate_propagator(patterns.second))
+  {}
+
+public:
+  OverlappingWFC(const Matrix<T>& input, const OverlappingWFCOptions& options, int seed) :
+    OverlappingWFC(input, options, seed, get_patterns(input, options))
+  {}
+
+  bool run() {
+    return wfc.run();
+  }
+
+  Matrix<T> get_output() {
+    Matrix<T> output = Matrix<T>(options.out_width, options.out_height);
 
     if(wfc.periodic_output) {
       for(unsigned y = 0; y < wfc.wave.height; y++) {
@@ -19,8 +63,8 @@ public:
     } else {
       for(unsigned y = 0; y < wfc.wave.height; y++) {
         for(unsigned x = 0; x < wfc.wave.width; x++) {
-          for(unsigned dy = 0; dy < pattern_size; dy++) {
-            for(unsigned dx = 0; dx < pattern_size; dx++) {
+          for(unsigned dy = 0; dy < options.pattern_size; dy++) {
+            for(unsigned dx = 0; dx < options.pattern_size; dx++) {
               output.get(y + dy, x + dx) = patterns[wfc.output_patterns.get(y,x)].get(dy,dx);
             }
           }
@@ -32,8 +76,8 @@ public:
   }
 
 
-  static void init_ground(WFC& wfc, const Matrix<T>& input, const vector<Matrix<T>>& patterns, const unsigned& pattern_size) {
-    unsigned ground_pattern_id = get_ground_pattern_id(input, pattern_size, patterns);
+  static void init_ground(WFC& wfc, const Matrix<T>& input, const vector<Matrix<T>>& patterns, const OverlappingWFCOptions& options) {
+    unsigned ground_pattern_id = get_ground_pattern_id(input, patterns, options);
 
     for(unsigned j = 0; j < wfc.wave.width; j++) {
       for(unsigned p = 0; p < patterns.size(); p++) {
@@ -52,8 +96,8 @@ public:
     wfc.propagate();
   }
 
-  static unsigned get_ground_pattern_id(const Matrix<T>& input, const unsigned& pattern_size, const vector<Matrix<T>>& patterns) {
-    Matrix<T> ground_pattern = get_ground_pattern(input, pattern_size);
+  static unsigned get_ground_pattern_id(const Matrix<T>& input, const vector<Matrix<T>>& patterns, const OverlappingWFCOptions& options) {
+    Matrix<T> ground_pattern = get_ground_pattern(input, options);
     for(unsigned i = 0; i < patterns.size(); i++) {
       if(ground_pattern == patterns[i]) {
         return i;
@@ -63,21 +107,21 @@ public:
     return 0;
   }
 
-  static Matrix<T> get_ground_pattern(const Matrix<T>& input, const unsigned& pattern_size) {
-    return input.get_sub_matrix(input.height - 1, input.width / 2, pattern_size, pattern_size);
+  static Matrix<T> get_ground_pattern(const Matrix<T>& input, const OverlappingWFCOptions& options) {
+    return input.get_sub_matrix(input.height - 1, input.width / 2, options.pattern_size, options.pattern_size);
   }
 
-  static pair<vector<unsigned>, vector<Matrix<T>>> get_patterns(const Matrix<T>& input, const unsigned& pattern_size, const bool& periodic_input, const unsigned& symmetry) {
+  static pair<vector<unsigned>, vector<Matrix<T>>> get_patterns(const Matrix<T>& input, const OverlappingWFCOptions& options) {
     unordered_map<Matrix<T>, unsigned> matrix_frequencies;
     pair<vector<unsigned>, vector<Matrix<T>>> patterns;
-    Matrix<T> sub_matrix = Matrix<T>(pattern_size, pattern_size);
-    vector<Matrix<T>> sym(8, Matrix<T>(pattern_size, pattern_size));
-    unsigned max_i = periodic_input ? input.height : input.height - pattern_size + 1;
-    unsigned max_j = periodic_input ? input.width : input.width - pattern_size + 1;
+    Matrix<T> sub_matrix = Matrix<T>(options.pattern_size, options.pattern_size);
+    vector<Matrix<T>> sym(8, Matrix<T>(options.pattern_size, options.pattern_size));
+    unsigned max_i = options.periodic_input ? input.height : input.height - options.pattern_size + 1;
+    unsigned max_j = options.periodic_input ? input.width : input.width - options.pattern_size + 1;
 
     for(unsigned i = 0; i < max_i; i++) {
       for(unsigned j = 0; j < max_j; j++) {
-        sym[0].data = input.get_sub_matrix(i, j, pattern_size, pattern_size).data;
+        sym[0].data = input.get_sub_matrix(i, j, options.pattern_size, options.pattern_size).data;
         sym[1].data = sym[0].reflected().data;
         sym[2].data = sym[0].rotated().data;
         sym[3].data = sym[2].reflected().data;
@@ -86,7 +130,7 @@ public:
         sym[6].data = sym[4].rotated().data;
         sym[7].data = sym[6].reflected().data;
 
-        for(unsigned k = 0; k<symmetry; k++) {
+        for(unsigned k = 0; k<options.symmetry; k++) {
           matrix_frequencies[sym[k]] += 1;
           if(matrix_frequencies[sym[k]] == 1) {
             patterns.second.push_back(sym[k]);
