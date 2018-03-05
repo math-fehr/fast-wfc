@@ -20,11 +20,11 @@ private:
   Matrix3D<array<int, 4>> compatible;
 public:
 
-  Propagator(unsigned wave_width, unsigned wave_height, bool periodic_output,
+  Propagator(unsigned wave_height, unsigned wave_width, bool periodic_output,
              vector<array<vector<unsigned>, 4>> propagator) :
     patterns_size(propagator.size()), propagator(propagator), wave_width(wave_width),
     wave_height(wave_height), periodic_output(periodic_output),
-    compatible(wave_width, wave_height, patterns_size)
+    compatible(wave_height, wave_width, patterns_size)
   {
     for(unsigned y = 0; y < wave_height; y++) {
       for(unsigned x = 0; x < wave_width; x++) {

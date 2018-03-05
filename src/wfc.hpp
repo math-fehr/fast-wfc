@@ -25,11 +25,11 @@ public:
   const bool periodic_output;
 
   WFC(bool periodic_output, int seed, vector<unsigned> patterns_frequencies,
-      vector<array<vector<unsigned>, 4>> propagator, unsigned wave_width, unsigned wave_height)
-    : gen(seed), wave(wave_width, wave_height, patterns_frequencies),
-      output_patterns(wave.width, wave.height),
+      vector<array<vector<unsigned>, 4>> propagator, unsigned wave_height, unsigned wave_width)
+    : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
+      output_patterns(wave.height, wave.width),
       patterns_frequencies(patterns_frequencies), nb_patterns(propagator.size()),
-      propagator(wave.width, wave.height, periodic_output, propagator),
+      propagator(wave.height, wave.width, periodic_output, propagator),
       periodic_output(periodic_output)
   {
   }

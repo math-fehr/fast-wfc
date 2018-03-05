@@ -13,7 +13,7 @@ public:
   const unsigned width;
   vector<T> data;
 
-  Matrix(unsigned width, unsigned height) noexcept :
+  Matrix(unsigned height, unsigned width) noexcept :
     height(height), width(width), data(width * height) {
   }
 

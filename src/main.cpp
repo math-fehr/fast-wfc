@@ -26,7 +26,7 @@ Matrix<Color> read_file(const string& file_path) {
   int num_components;
   // TODO check error
   unsigned char *data = stbi_load(file_path.c_str(), &width, &height, &num_components, 3);
-  Matrix<Color> m = Matrix<Color>(width, height);
+  Matrix<Color> m = Matrix<Color>(height, width);
   for(unsigned i = 0; i < (unsigned)height; i++) {
     for(unsigned j = 0; j < (unsigned)width; j++) {
       unsigned index = 3 * (i * width + j);
@@ -58,7 +58,7 @@ void read_overlapping_element(xml_node<>* node) {
   string symmetry = get_attribute(node, "symmetry", "8");
   string screenshots = get_attribute(node, "screenshots", "2");
   string width = get_attribute(node, "width", "96");
-  string height = get_attribute(node, "width", "96");
+  string height = get_attribute(node, "height", "96");
 
   unsigned N_value = stoi(N);
   unsigned width_value = stoi(width);
@@ -71,7 +71,7 @@ void read_overlapping_element(xml_node<>* node) {
 
   cout << name << " started!" << endl;
   Matrix<Color> m = read_file("samples/" + name + ".png");
-  OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, width_value, height_value, symmetry_value, ground_value, N_value, 6683};
+  OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, height_value, width_value, symmetry_value, ground_value, N_value, 6683};
   for(unsigned i = 0; i < screenshots_value; i++) {
     for(unsigned test = 0; test < 10; test++) {
       OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots_value + i);

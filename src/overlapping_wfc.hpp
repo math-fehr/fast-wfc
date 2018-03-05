@@ -6,8 +6,8 @@
 struct OverlappingWFCOptions {
   bool periodic_input;
   bool periodic_output;
-  unsigned out_width;
   unsigned out_height;
+  unsigned out_width;
   unsigned symmetry;
   bool ground;
   unsigned pattern_size;
@@ -29,8 +29,8 @@ private:
     options(options),
     patterns(patterns.second),
     wfc(options.periodic_output, seed, patterns.first, propagator,
-        options.periodic_output ? options.out_width : options.out_width - options.pattern_size + 1,
-        options.periodic_output ? options.out_height : options.out_height - options.pattern_size + 1)
+        options.periodic_output ? options.out_height : options.out_height - options.pattern_size + 1,
+        options.periodic_output ? options.out_width : options.out_width - options.pattern_size + 1)
   {
     if(options.ground) {
       init_ground(wfc, input, patterns.second, options);
@@ -52,7 +52,7 @@ public:
   }
 
   Matrix<T> get_output() {
-    Matrix<T> output = Matrix<T>(options.out_width, options.out_height);
+    Matrix<T> output = Matrix<T>(options.out_height, options.out_width);
 
     if(wfc.periodic_output) {
       for(unsigned y = 0; y < wfc.wave.height; y++) {

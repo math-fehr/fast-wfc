@@ -14,7 +14,7 @@ public:
 
   vector<T> data;
 
-  Matrix3D(unsigned width, unsigned height, unsigned depth) noexcept :
+  Matrix3D(unsigned height, unsigned width, unsigned depth) noexcept :
     height(height), width(width), depth(depth), data(width * height * depth) {
   }
 

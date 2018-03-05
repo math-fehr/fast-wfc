@@ -32,7 +32,7 @@ public:
   const unsigned height;
   const unsigned size;
 
-  Wave(unsigned width, unsigned height, const vector<unsigned>& patterns_frequencies) :
+  Wave(unsigned height, unsigned width, const vector<unsigned>& patterns_frequencies) :
     patterns_frequencies(patterns_frequencies), nb_patterns(patterns_frequencies.size()),
     width(width), height(height), size(width * height)
   {
