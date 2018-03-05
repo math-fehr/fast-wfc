@@ -20,6 +20,9 @@ struct Color {
   }
 };
 
+/**
+ * Hash function for color.
+ */
 namespace std {
   template<>
   class hash<Color> {

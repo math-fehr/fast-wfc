@@ -17,7 +17,6 @@ public:
   minstd_rand gen;
 
   Wave wave;
-  Array2D<unsigned> output_patterns;
   const vector<unsigned> patterns_frequencies;
   const unsigned nb_patterns;
   Propagator propagator;
@@ -27,27 +26,26 @@ public:
   WFC(bool periodic_output, int seed, vector<unsigned> patterns_frequencies,
       vector<array<vector<unsigned>, 4>> propagator, unsigned wave_height, unsigned wave_width)
     : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
-      output_patterns(wave.height, wave.width),
       patterns_frequencies(patterns_frequencies), nb_patterns(propagator.size()),
       propagator(wave.height, wave.width, periodic_output, propagator),
       periodic_output(periodic_output)
   {
   }
 
-  bool run() {
+  optional<Array2D<unsigned>> run() {
     while(true) {
       ObserveStatus result = observe();
       if(result == failure) {
-        cout << "failed" << endl;
-        return false;
+        return nullopt;
       } else if(result == success) {
-        return true;
+        return wave_to_output();
       }
       propagator.propagate(wave);
     }
   }
 
-  void wave_to_output() {
+  Array2D<unsigned> wave_to_output() {
+    Array2D<unsigned> output_patterns(wave.height, wave.width);
     for(unsigned i = 0; i< wave.size; i++) {
       for(unsigned k = 0; k < nb_patterns; k++) {
         if(wave.get(i, k)) {
@@ -55,6 +53,7 @@ public:
         }
       }
     }
+    return output_patterns;
   }
 
   enum ObserveStatus {

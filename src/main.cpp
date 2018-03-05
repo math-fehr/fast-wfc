@@ -70,15 +70,17 @@ void read_overlapping_element(xml_node<>* node) {
 
   cout << name << " started!" << endl;
   Array2D<Color> m = read_file("samples/" + name + ".png");
-  OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, height_value, width_value, symmetry_value, ground_value, N_value, 6683};
+  OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, height_value, width_value, symmetry_value, ground_value, N_value};
   for(unsigned i = 0; i < screenshots_value; i++) {
     for(unsigned test = 0; test < 10; test++) {
       OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots_value + i);
-      bool success = wfc.run();
-      if(success) {
-        write_file("results/" + name + ".png", wfc.get_output());
+      std::optional<Array2D<Color>> success = wfc.run();
+      if(success.has_value()) {
+        write_file("results/" + name + ".png", *success);
         cout << name << " finished!" << endl;
         break;
+      } else {
+        cout << "failed!" << endl;
       }
     }
   }
