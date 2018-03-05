@@ -6,7 +6,7 @@
 #include <cmath>
 #include <random>
 
-#include "matrix.hpp"
+#include "array2D.hpp"
 #include "wave.hpp"
 #include "propagator.hpp"
 
@@ -17,7 +17,7 @@ public:
   minstd_rand gen;
 
   Wave wave;
-  Matrix<unsigned> output_patterns;
+  Array2D<unsigned> output_patterns;
   const vector<unsigned> patterns_frequencies;
   const unsigned nb_patterns;
   Propagator propagator;

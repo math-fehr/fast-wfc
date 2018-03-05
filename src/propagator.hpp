@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <tuple>
-#include "matrix.hpp"
-#include "matrix3D.hpp"
+#include "array2D.hpp"
+#include "array3D.hpp"
 #include "wave.hpp"
 #include "direction.hpp"
 
@@ -17,7 +17,7 @@ private:
   const unsigned wave_height;
   const bool periodic_output;
   vector<tuple<unsigned, unsigned, unsigned>> propagating;
-  Matrix3D<array<int, 4>> compatible;
+  Array3D<array<int, 4>> compatible;
 public:
 
   Propagator(unsigned wave_height, unsigned wave_width, bool periodic_output,
@@ -33,7 +33,7 @@ public:
           for(int direction = 0; direction < 4; direction++) {
             value[direction] = propagator[pattern][get_opposite_direction(direction)].size();
           }
-          compatible.set(y, x, pattern, value);
+          compatible.get(y, x, pattern) = value;
         }
       }
     }
@@ -41,7 +41,7 @@ public:
 
   void add_to_propagator(unsigned y, unsigned x, unsigned pattern) {
     array<int, 4> temp = {};
-    compatible.set(y,x,pattern,temp);
+    compatible.get(y,x,pattern) = temp;
     propagating.emplace_back(y, x, pattern);
   }
 

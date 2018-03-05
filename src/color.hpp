@@ -5,14 +5,17 @@
 
 using namespace std;
 
+/**
+ * Represent a 24-bit rgb color.
+ */
 struct Color {
   unsigned char r,g,b;
 
-  bool operator==(const Color& c) const {
+  bool operator==(const Color& c) const noexcept {
     return r == c.r && g == c.g && b == c.b;
   }
 
-  bool operator!=(const Color& c) const {
+  bool operator!=(const Color& c) const noexcept {
     return !(c == *this);
   }
 };
@@ -22,12 +25,7 @@ namespace std {
   class hash<Color> {
   public:
     size_t operator()(const Color& c) const {
-      return c.r + 256*c.g + 256*256*c.b;
+      return (size_t)c.r + (size_t)256*(size_t)c.g + (size_t)256*(size_t)256*(size_t)c.b;
     }
   };
-}
-
-ostream& operator<<(std::ostream& os, const Color& c) {
-  os << "(" << (unsigned)c.r << "," << (unsigned)c.g << "," << (unsigned)c.b << ")";
-  return os;
 }
