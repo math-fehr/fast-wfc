@@ -99,7 +99,7 @@ namespace std {
     {
         std::size_t seed = m.data.size();
         for(const T& i: m.data) {
-          seed ^= unsigned(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+          seed ^= hash<T>()(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;
     }

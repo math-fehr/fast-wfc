@@ -49,6 +49,43 @@ string get_attribute(xml_node<>* node, const string& attribute, const string& de
   }
 }
 
+void read_overlapping_element(xml_node<>* node) {
+  string name = node->first_attribute("name")->value();
+  string N = node->first_attribute("N")->value();
+  string periodic_output = get_attribute(node, "periodic", "False");
+  string periodic_input = get_attribute(node, "periodicInput", "True");
+  string ground = get_attribute(node, "ground", "0");
+  string symmetry = get_attribute(node, "symmetry", "8");
+  string screenshots = get_attribute(node, "screenshots", "2");
+  string width = get_attribute(node, "width", "96");
+  string height = get_attribute(node, "width", "96");
+
+  unsigned N_value = stoi(N);
+  unsigned width_value = stoi(width);
+  unsigned height_value = stoi(height);
+  unsigned symmetry_value = stoi(symmetry);
+  int ground_value = stoi(ground);
+  unsigned screenshots_value = stoi(screenshots);
+  bool periodic_input_value = periodic_input == "True";
+  bool periodic_output_value = periodic_output == "True";
+
+  cout << name << " started!" << endl;
+  Matrix<Color> m = read_file("samples/" + name + ".png");
+  OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, width_value, height_value, symmetry_value, ground_value, N_value, 6683};
+  for(unsigned i = 0; i < screenshots_value; i++) {
+    for(unsigned test = 0; test < 10; test++) {
+      OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots_value + i);
+      bool success = wfc.run();
+      if(success) {
+        write_file("results/" + name + ".png", wfc.get_output());
+        cout << name << " finished!" << endl;
+        break;
+      }
+    }
+  }
+}
+
+
 void read_config_file(const string& config_path) {
   xml_document<> doc;
   xml_node<>* root_node;
@@ -59,39 +96,7 @@ void read_config_file(const string& config_path) {
   root_node = doc.first_node("samples");
   ProfilerStart("profile.log");
   for (xml_node<> * node = root_node->first_node("overlapping"); node; node = node->next_sibling("overlapping")) {
-    string name = node->first_attribute("name")->value();
-    string N = node->first_attribute("N")->value();
-    string periodic_output = get_attribute(node, "periodic", "False");
-    string periodic_input = get_attribute(node, "periodicInput", "True");
-    string ground = get_attribute(node, "ground", "0");
-    string symmetry = get_attribute(node, "symmetry", "8");
-    string screenshots = get_attribute(node, "screenshots", "2");
-    string width = get_attribute(node, "width", "96");
-    string height = get_attribute(node, "width", "96");
-
-    unsigned N_value = stoi(N);
-    unsigned width_value = stoi(width);
-    unsigned height_value = stoi(height);
-    unsigned symmetry_value = stoi(symmetry);
-    int ground_value = stoi(ground);
-    unsigned screenshots_value = stoi(screenshots);
-    bool periodic_input_value = periodic_input == "True";
-    bool periodic_output_value = periodic_output == "True";
-
-    cout << name << " started!" << endl;
-    Matrix<Color> m = read_file("samples/" + name + ".png");
-    OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, width_value, height_value, symmetry_value, ground_value, N_value, 6683};
-    for(unsigned i = 0; i < screenshots_value; i++) {
-      for(unsigned test = 0; test < 10; test++) {
-        OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots_value + i);
-        bool success = wfc.run();
-        if(success) {
-          write_file("results/" + name + ".png", wfc.get_output());
-          cout << name << " finished!" << endl;
-          break;
-        }
-      }
-    }
+    read_overlapping_element(node);
   }
   ProfilerStop();
 }
