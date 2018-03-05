@@ -31,7 +31,7 @@ public:
         for(unsigned pattern = 0; pattern < patterns_size; pattern++) {
           array<int, 4> value;
           for(int direction = 0; direction < 4; direction++) {
-            value[direction] = propagator[pattern][inv_direction[direction]].size();
+            value[direction] = propagator[pattern][get_opposite_direction(direction)].size();
           }
           compatible.set(y, x, pattern, value);
         }
