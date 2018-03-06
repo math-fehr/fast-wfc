@@ -12,16 +12,20 @@
 
 using namespace std;
 
+/**
+ * Class doing the generic WFC algorithm.
+ */
 class WFC {
-public:
+private:
   minstd_rand gen;
-
   Wave wave;
   const vector<double> patterns_frequencies;
   const unsigned nb_patterns;
   Propagator propagator;
 
   const bool periodic_output;
+
+public:
 
   WFC(bool periodic_output, int seed, vector<double> patterns_frequencies,
       vector<array<vector<unsigned>, 4>> propagator, unsigned wave_height, unsigned wave_width)

@@ -34,6 +34,14 @@ public:
   }
 
   /**
+   * Build a 2D array given its height, width and depth.
+   * All the arrays elements are initialized to value
+   */
+  Array3D(unsigned height, unsigned width, unsigned depth, T value) noexcept :
+    height(height), width(width), depth(depth), data(width * height * depth, value) {
+  }
+
+  /**
    * Return a const reference to the element in the i-th line, j-th column, and k-th depth.
    * i must be lower than height, j lower than width, and k lower than depth.
    */

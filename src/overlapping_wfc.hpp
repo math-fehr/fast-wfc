@@ -14,6 +14,20 @@ struct OverlappingWFCOptions {
   unsigned symmetry;       // The number of symmetries (the order is defined in wfc).
   bool ground;             // True if the ground needs to be set (see init_ground).
   unsigned pattern_size;   // The width and height in pixel of the patterns.
+
+  /**
+   * Get the wave height given these options.
+   */
+  unsigned get_wave_height() const noexcept {
+    return periodic_output ? out_height : out_height - pattern_size + 1;
+  }
+
+  /**
+   * Get the wave width given these options.
+   */
+  unsigned get_wave_width() const noexcept {
+    return periodic_output ? out_width : out_width - pattern_size + 1;
+  }
 };
 
 /**
@@ -55,8 +69,7 @@ private:
     options(options),
     patterns(patterns.first),
     wfc(options.periodic_output, seed, patterns.second, propagator,
-        options.periodic_output ? options.out_height : options.out_height - options.pattern_size + 1,
-        options.periodic_output ? options.out_width : options.out_width - options.pattern_size + 1)
+        options.get_wave_height(), options.get_wave_width())
   {
     // If necessary, the ground is set.
     if(options.ground) {
@@ -83,17 +96,17 @@ private:
     unsigned ground_pattern_id = get_ground_pattern_id(input, patterns, options);
 
     // Place the pattern in the ground.
-    for(unsigned j = 0; j < wfc.wave.width; j++) {
+    for(unsigned j = 0; j < options.get_wave_width(); j++) {
       for(unsigned p = 0; p < patterns.size(); p++) {
         if(ground_pattern_id != p) {
-          wfc.remove_wave_pattern(wfc.wave.height - 1, j, p);
+          wfc.remove_wave_pattern(options.get_wave_height() - 1, j, p);
         }
       }
     }
 
     // Remove the pattern from the other positions.
-    for(unsigned i = 0; i < wfc.wave.height - 1; i++) {
-      for(unsigned j = 0; j < wfc.wave.width; j++) {
+    for(unsigned i = 0; i < options.get_wave_height() - 1; i++) {
+      for(unsigned j = 0; j < options.get_wave_width(); j++) {
         wfc.remove_wave_pattern(i, j, ground_pattern_id);
       }
     }
@@ -217,15 +230,15 @@ private:
   Array2D<T> to_image(const Array2D<unsigned>& output_patterns) {
     Array2D<T> output = Array2D<T>(options.out_height, options.out_width);
 
-    if(wfc.periodic_output) {
-      for(unsigned y = 0; y < wfc.wave.height; y++) {
-        for(unsigned x = 0; x < wfc.wave.width; x++) {
+    if(options.periodic_output) {
+      for(unsigned y = 0; y < options.get_wave_height(); y++) {
+        for(unsigned x = 0; x < options.get_wave_width(); x++) {
           output.get(y,x) = patterns[output_patterns.get(y,x)].get(0,0);
         }
       }
     } else { //TODO change bad code
-      for(unsigned y = 0; y < wfc.wave.height; y++) {
-        for(unsigned x = 0; x < wfc.wave.width; x++) {
+      for(unsigned y = 0; y < options.get_wave_height(); y++) {
+        for(unsigned x = 0; x < options.get_wave_width(); x++) {
           for(unsigned dy = 0; dy < options.pattern_size; dy++) {
             for(unsigned dx = 0; dx < options.pattern_size; dx++) {
               output.get(y + dy, x + dx) = patterns[output_patterns.get(y,x)].get(dy,dx);

@@ -34,6 +34,14 @@ public:
   }
 
   /**
+   * Build a 2D array given its height and width.
+   * All the array elements are initialized to value.
+   */
+  Array2D(unsigned height, unsigned width, T value) noexcept :
+    height(height), width(width), data(width * height, value) {
+  }
+
+  /**
    * Return a const reference to the element in the i-th line and j-th column.
    * i must be lower than height and j lower than width.
    */
