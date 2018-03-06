@@ -56,8 +56,8 @@ void read_overlapping_element(xml_node<>* node) {
   string ground = get_attribute(node, "ground", "0");
   string symmetry = get_attribute(node, "symmetry", "8");
   string screenshots = get_attribute(node, "screenshots", "2");
-  string width = get_attribute(node, "width", "96");
-  string height = get_attribute(node, "height", "96");
+  string width = get_attribute(node, "width", "48");
+  string height = get_attribute(node, "height", "48");
 
   unsigned N_value = stoi(N);
   unsigned width_value = stoi(width);
@@ -105,7 +105,7 @@ int main() {
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  read_config_file("samples2.xml");
+  read_config_file("samples.xml");
 
   end = std::chrono::system_clock::now();
   int elapsed_s = std::chrono::duration_cast<std::chrono::seconds> (end-start).count();
