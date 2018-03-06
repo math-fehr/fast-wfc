@@ -49,7 +49,7 @@ private:
    * This is necessary in order to initialize wfc only once.
    */
   OverlappingWFC(const Array2D<T>& input, const OverlappingWFCOptions& options, const int& seed,
-                 const pair<vector<Array2D<T>>, vector<unsigned>>& patterns,
+                 const pair<vector<Array2D<T>>, vector<double>>& patterns,
                  const vector<array<vector<unsigned>, 4>>& propagator) :
     input(input),
     options(options),
@@ -68,11 +68,11 @@ private:
    * Constructor used only to call the other constructor with more computed parameters.
    */
   OverlappingWFC(const Array2D<T>& input, const OverlappingWFCOptions& options, const int& seed,
-                 const pair<vector<Array2D<T>>, vector<unsigned>>& patterns) :
+                 const pair<vector<Array2D<T>>, vector<double>>& patterns) :
     OverlappingWFC(input, options, seed, patterns, generate_compatible(patterns.first))
   {}
 
-  
+
   /**
    * Init the ground of the output image.
    * The lowest middle pattern is used as a floor (and ceiling when the input is toric)
@@ -124,12 +124,12 @@ private:
   /**
    * Return the list of patterns, as well as their probabilities of apparition.
    */
-  static pair<vector<Array2D<T>>, vector<unsigned>> get_patterns(const Array2D<T>& input, const OverlappingWFCOptions& options) {
+  static pair<vector<Array2D<T>>, vector<double>> get_patterns(const Array2D<T>& input, const OverlappingWFCOptions& options) {
     unordered_map<Array2D<T>, unsigned> patterns_id;
     vector<Array2D<T>> patterns;
 
     // The number of time a pattern is seen in the input image.
-    vector<unsigned> patterns_frequency;
+    vector<double> patterns_frequency;
 
     vector<Array2D<T>> symmetries(8, Array2D<T>(options.pattern_size, options.pattern_size));
     unsigned max_i = options.periodic_input ? input.height : input.height - options.pattern_size + 1;
@@ -248,7 +248,7 @@ public:
   {}
 
   /**
-   * Run the WFC algorithm, and return the result if the algorithm succeed.
+   * Run the WFC algorithm, and return the result if the algorithm succeeded.
    */
   std::optional<Array2D<T>> run() {
     std::optional<Array2D<unsigned>> result = wfc.run();

@@ -17,13 +17,13 @@ public:
   minstd_rand gen;
 
   Wave wave;
-  const vector<unsigned> patterns_frequencies;
+  const vector<double> patterns_frequencies;
   const unsigned nb_patterns;
   Propagator propagator;
 
   const bool periodic_output;
 
-  WFC(bool periodic_output, int seed, vector<unsigned> patterns_frequencies,
+  WFC(bool periodic_output, int seed, vector<double> patterns_frequencies,
       vector<array<vector<unsigned>, 4>> propagator, unsigned wave_height, unsigned wave_width)
     : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
       patterns_frequencies(patterns_frequencies), nb_patterns(propagator.size()),

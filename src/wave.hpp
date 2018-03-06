@@ -11,7 +11,7 @@ using namespace std;
 
 struct EntropyMemoisation {
   vector<double> plogp;
-  vector<unsigned> sum;
+  vector<double> sum;
   vector<double> log_sum;
   vector<unsigned> nb_possibilities;
   vector<double> entropy;
@@ -20,7 +20,7 @@ struct EntropyMemoisation {
 class Wave {
 private:
   vector<uint8_t> data;
-  const vector<unsigned> patterns_frequencies;
+  const vector<double> patterns_frequencies;
   vector<double> plogp_patterns_frequencies;
   EntropyMemoisation memoisation;
   bool is_impossible;
@@ -32,16 +32,16 @@ public:
   const unsigned height;
   const unsigned size;
 
-  Wave(unsigned height, unsigned width, const vector<unsigned>& patterns_frequencies) :
+  Wave(unsigned height, unsigned width, const vector<double>& patterns_frequencies) :
     patterns_frequencies(patterns_frequencies), nb_patterns(patterns_frequencies.size()),
     width(width), height(height), size(width * height)
   {
     is_impossible = false;
     double base_entropy = 0;
-    unsigned base_s = 0;
+    double base_s = 0;
     double half_min_plogp = numeric_limits<double>::infinity();
     for(unsigned i = 0; i < nb_patterns; i++) {
-      plogp_patterns_frequencies.push_back((double)patterns_frequencies[i] * log(patterns_frequencies[i]));
+      plogp_patterns_frequencies.push_back(patterns_frequencies[i] * log(patterns_frequencies[i]));
       half_min_plogp = min(half_min_plogp, plogp_patterns_frequencies[i] / 2.0);
       base_entropy += plogp_patterns_frequencies[i];
       base_s += patterns_frequencies[i];
@@ -49,7 +49,7 @@ public:
     double log_base_s = log(base_s);
     double entropy_base = log_base_s - base_entropy / base_s;
     memoisation.plogp = vector<double>(width * height, base_entropy);
-    memoisation.sum = vector<unsigned>(width * height, base_s);
+    memoisation.sum = vector<double>(width * height, base_s);
     memoisation.log_sum = vector<double>(width * height, log_base_s);
     memoisation.nb_possibilities = vector<unsigned>(width * height, nb_patterns);
     memoisation.entropy = vector<double>(width * height, entropy_base);
