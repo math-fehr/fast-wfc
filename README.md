@@ -1,6 +1,7 @@
 # fast-wfc
 
 An implementation of [Wave Function Collapse](https://github.com/mxgmn/WaveFunctionCollapse) with a focus on performance.
+At the time of writing, only the overlapping method has been implemented.
 
 # Requirements
 
