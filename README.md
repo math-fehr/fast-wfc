@@ -7,6 +7,14 @@ At the time of writing, only the overlapping method has been implemented.
 
 You need a C++-17 compatible compiler.
 
+# Getting started
+
+```
+git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc/
+make all
+./wfc
+```
+
 # Third-parties library
 
 The files in `src/lib/` come from:
@@ -16,3 +24,9 @@ The files in `src/lib/` come from:
 # Image samples
 
 The image samples come from [https://github.com/mxgmn/WaveFunctionCollapse](https://github.com/mxgmn/WaveFunctionCollapse)
+
+# Licence 
+
+Copyright (c) 2018 Mathieu Fehr and Nathanaël Courant.
+
+MIT License, see `LICENSE` for further details.
