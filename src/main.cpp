@@ -23,8 +23,8 @@ Array2D<Color> read_file(const string& file_path) noexcept {
   int width;
   int height;
   int num_components;
-  // TODO check error
   unsigned char *data = stbi_load(file_path.c_str(), &width, &height, &num_components, 3);
+  assert(data != nullptr);
   Array2D<Color> m = Array2D<Color>(height, width);
   for(unsigned i = 0; i < (unsigned)height; i++) {
     for(unsigned j = 0; j < (unsigned)width; j++) {

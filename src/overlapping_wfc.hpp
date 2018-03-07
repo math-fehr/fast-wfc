@@ -205,7 +205,6 @@ private:
    * If agrees(pattern1, pattern2, dy, dx), then compatible[pattern1][direction] contains pattern2,
    * where direction is the direction defined by (dy, dx) (see direction.hpp).
    */
-  //TODO rename compatible ?
   static vector<array<vector<unsigned>, 4>> generate_compatible(const vector<Array2D<T>>& patterns) noexcept {
     vector<array<vector<unsigned>, 4>> compatible = vector<array<vector<unsigned>, 4>>(patterns.size());
 
@@ -236,14 +235,28 @@ private:
           output.get(y,x) = patterns[output_patterns.get(y,x)].get(0,0);
         }
       }
-    } else { //TODO change bad code
+    } else {
       for(unsigned y = 0; y < options.get_wave_height(); y++) {
         for(unsigned x = 0; x < options.get_wave_width(); x++) {
-          for(unsigned dy = 0; dy < options.pattern_size; dy++) {
-            for(unsigned dx = 0; dx < options.pattern_size; dx++) {
-              output.get(y + dy, x + dx) = patterns[output_patterns.get(y,x)].get(dy,dx);
-            }
-          }
+          output.get(y, x) = patterns[output_patterns.get(y,x)].get(0,0);
+        }
+      }
+      for(unsigned y = 0; y < options.get_wave_height(); y++) {
+        const Array2D<T>& pattern = patterns[output_patterns.get(y, options.get_wave_width()-1)];
+        for(unsigned dx = 1; dx < options.pattern_size; dx++) {
+          output.get(y, options.get_wave_width() - 1 + dx) = pattern.get(0, dx);
+        }
+      }
+      for(unsigned x = 0; x < options.get_wave_width(); x++) {
+        const Array2D<T>& pattern = patterns[output_patterns.get(options.get_wave_height() - 1, x)];
+        for(unsigned dy = 1; dy < options.pattern_size; dy++) {
+          output.get(options.get_wave_height() - 1 + dy, x) = pattern.get(dy, 0);
+        }
+      }
+      const Array2D<T>& pattern = patterns[output_patterns.get(options.get_wave_height() - 1, options.get_wave_width() - 1)];
+      for(unsigned dy = 1; dy < options.pattern_size; dy++) {
+        for(unsigned dx = 1; dx < options.pattern_size; dx++) {
+          output.get(options.get_wave_height() - 1 + dy, options.get_wave_width() - 1 + dx) = pattern.get(dy, dx);
         }
       }
     }
