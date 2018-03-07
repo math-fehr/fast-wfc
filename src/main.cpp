@@ -19,7 +19,7 @@ using namespace std;
 using namespace rapidxml;
 
 
-Array2D<Color> read_file(const string& file_path) {
+Array2D<Color> read_file(const string& file_path) noexcept {
   int width;
   int height;
   int num_components;
@@ -36,11 +36,11 @@ Array2D<Color> read_file(const string& file_path) {
   return m;
 }
 
-void write_file(const string& file_path, const Array2D<Color>& m) {
+void write_file(const string& file_path, const Array2D<Color>& m) noexcept {
   stbi_write_png(file_path.c_str(), m.width, m.height, 3, (const unsigned char*)m.data.data(),0);
 }
 
-string get_attribute(xml_node<>* node, const string& attribute, const string& default_value) {
+string get_attribute(xml_node<>* node, const string& attribute, const string& default_value) noexcept {
   if(node->first_attribute(attribute.c_str()) != nullptr) {
     return node->first_attribute(attribute.c_str())->value();
   } else {
@@ -48,7 +48,7 @@ string get_attribute(xml_node<>* node, const string& attribute, const string& de
   }
 }
 
-void read_overlapping_element(xml_node<>* node) {
+void read_overlapping_element(xml_node<>* node) noexcept {
   string name = node->first_attribute("name")->value();
   string N = node->first_attribute("N")->value();
   string periodic_output = get_attribute(node, "periodic", "False");
@@ -87,7 +87,7 @@ void read_overlapping_element(xml_node<>* node) {
 }
 
 
-void read_config_file(const string& config_path) {
+void read_config_file(const string& config_path) noexcept {
   xml_document<> doc;
   xml_node<>* root_node;
   ifstream config_file(config_path);

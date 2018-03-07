@@ -55,7 +55,7 @@ private:
   /**
    * Initialize compatible.
    */
-  void init_compatible() {
+  void init_compatible() noexcept {
     array<int, 4> value;
     // We compute the number of pattern compatible in all directions.
     for(unsigned y = 0; y < wave_height; y++) {
@@ -76,7 +76,7 @@ public:
    * Constructor building the propagator and initializing compatible.
    */
   Propagator(unsigned wave_height, unsigned wave_width, bool periodic_output,
-             vector<array<vector<unsigned>, 4>> propagator) :
+             vector<array<vector<unsigned>, 4>> propagator) noexcept :
     patterns_size(propagator.size()), propagator(propagator), wave_width(wave_width),
     wave_height(wave_height), periodic_output(periodic_output),
     compatible(wave_height, wave_width, patterns_size)
@@ -88,7 +88,7 @@ public:
    * Add an element to the propagator.
    * This function is called when wave.get(y, x, pattern) is set to false.
    */
-  void add_to_propagator(unsigned y, unsigned x, unsigned pattern) {
+  void add_to_propagator(unsigned y, unsigned x, unsigned pattern) noexcept {
     // All the direction are set to 0, since the pattern cannot be set in (y,x).
     array<int, 4> temp = {};
     compatible.get(y,x,pattern) = temp;
@@ -98,7 +98,7 @@ public:
   /**
    * Propagate the information given with add_to_propagator.
    */
-  void propagate(Wave& wave) {
+  void propagate(Wave& wave) noexcept {
 
     // We propagate every element while there is element to propagate.
     while(propagating.size() != 0) {

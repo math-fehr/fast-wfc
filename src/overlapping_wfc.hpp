@@ -64,7 +64,7 @@ private:
    */
   OverlappingWFC(const Array2D<T>& input, const OverlappingWFCOptions& options, const int& seed,
                  const pair<vector<Array2D<T>>, vector<double>>& patterns,
-                 const vector<array<vector<unsigned>, 4>>& propagator) :
+                 const vector<array<vector<unsigned>, 4>>& propagator) noexcept :
     input(input),
     options(options),
     patterns(patterns.first),
@@ -81,7 +81,7 @@ private:
    * Constructor used only to call the other constructor with more computed parameters.
    */
   OverlappingWFC(const Array2D<T>& input, const OverlappingWFCOptions& options, const int& seed,
-                 const pair<vector<Array2D<T>>, vector<double>>& patterns) :
+                 const pair<vector<Array2D<T>>, vector<double>>& patterns) noexcept :
     OverlappingWFC(input, options, seed, patterns, generate_compatible(patterns.first))
   {}
 
@@ -92,7 +92,7 @@ private:
    * and is placed at the lowest possible pattern position in the output image, on all its width.
    * The pattern cannot be used at any other place in the output image.
    */
-  static void init_ground(WFC& wfc, const Array2D<T>& input, const vector<Array2D<T>>& patterns, const OverlappingWFCOptions& options) {
+  static void init_ground(WFC& wfc, const Array2D<T>& input, const vector<Array2D<T>>& patterns, const OverlappingWFCOptions& options) noexcept {
     unsigned ground_pattern_id = get_ground_pattern_id(input, patterns, options);
 
     // Place the pattern in the ground.
@@ -118,7 +118,7 @@ private:
   /**
    * Return the id of the lowest middle pattern.
    */
-  static unsigned get_ground_pattern_id(const Array2D<T>& input, const vector<Array2D<T>>& patterns, const OverlappingWFCOptions& options) {
+  static unsigned get_ground_pattern_id(const Array2D<T>& input, const vector<Array2D<T>>& patterns, const OverlappingWFCOptions& options) noexcept {
     // Get the pattern.
     Array2D<T> ground_pattern = input.get_sub_array(input.height - 1, input.width / 2, options.pattern_size, options.pattern_size);
 
@@ -137,7 +137,7 @@ private:
   /**
    * Return the list of patterns, as well as their probabilities of apparition.
    */
-  static pair<vector<Array2D<T>>, vector<double>> get_patterns(const Array2D<T>& input, const OverlappingWFCOptions& options) {
+  static pair<vector<Array2D<T>>, vector<double>> get_patterns(const Array2D<T>& input, const OverlappingWFCOptions& options) noexcept {
     unordered_map<Array2D<T>, unsigned> patterns_id;
     vector<Array2D<T>> patterns;
 
@@ -182,7 +182,7 @@ private:
    * Return true if the pattern1 is compatible with pattern2
    * when pattern2 is at a distance (dy,dx) from pattern1.
    */
-  static bool agrees(const Array2D<T>& pattern1, const Array2D<T>& pattern2, int dy, int dx) {
+  static bool agrees(const Array2D<T>& pattern1, const Array2D<T>& pattern2, int dy, int dx) noexcept {
     unsigned xmin = dx < 0 ? 0 : dx;
     unsigned xmax = dx < 0 ? dx + pattern2.width : pattern1.width;
     unsigned ymin = dy < 0 ? 0 : dy;
@@ -206,7 +206,7 @@ private:
    * where direction is the direction defined by (dy, dx) (see direction.hpp).
    */
   //TODO rename compatible ?
-  static vector<array<vector<unsigned>, 4>> generate_compatible(const vector<Array2D<T>>& patterns) {
+  static vector<array<vector<unsigned>, 4>> generate_compatible(const vector<Array2D<T>>& patterns) noexcept {
     vector<array<vector<unsigned>, 4>> compatible = vector<array<vector<unsigned>, 4>>(patterns.size());
 
     // Iterate on every dy, dx, pattern1 and pattern2
@@ -227,7 +227,7 @@ private:
   /**
    * Transform a 2D array containing the patterns id to a 2D array containing the pixels.
    */
-  Array2D<T> to_image(const Array2D<unsigned>& output_patterns) {
+  Array2D<T> to_image(const Array2D<unsigned>& output_patterns) const noexcept {
     Array2D<T> output = Array2D<T>(options.out_height, options.out_width);
 
     if(options.periodic_output) {
@@ -256,14 +256,14 @@ public:
   /**
    * The constructor used by the user.
    */
-  OverlappingWFC(const Array2D<T>& input, const OverlappingWFCOptions& options, int seed) :
+  OverlappingWFC(const Array2D<T>& input, const OverlappingWFCOptions& options, int seed) noexcept :
     OverlappingWFC(input, options, seed, get_patterns(input, options))
   {}
 
   /**
    * Run the WFC algorithm, and return the result if the algorithm succeeded.
    */
-  std::optional<Array2D<T>> run() {
+  std::optional<Array2D<T>> run() noexcept {
     std::optional<Array2D<unsigned>> result = wfc.run();
     if(result.has_value()) {
       return to_image(*result);

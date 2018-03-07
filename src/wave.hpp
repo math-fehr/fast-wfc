@@ -69,7 +69,7 @@ private:
   /**
    * Return distribution * log(distribution).
    */
-  static vector<double> get_plogp(const vector<double>& distribution) {
+  static vector<double> get_plogp(const vector<double>& distribution) noexcept {
     vector<double> plogp;
     for(unsigned i = 0; i < distribution.size(); i++) {
       plogp.push_back(distribution[i] * log(distribution[i]));
@@ -80,7 +80,7 @@ private:
   /**
    * Return min(v) / 2.
    */
-  static double get_half_min(const vector<double>& v) {
+  static double get_half_min(const vector<double>& v) noexcept {
     double half_min = numeric_limits<double>::infinity();
     for(unsigned i = 0; i < v.size(); i++) {
       half_min = min(half_min, v[i] / 2.0);
@@ -99,7 +99,7 @@ public:
   /**
    * Initialize the wave with every cell being able to have every pattern.
    */
-  Wave(unsigned height, unsigned width, const vector<double>& patterns_frequencies) :
+  Wave(unsigned height, unsigned width, const vector<double>& patterns_frequencies) noexcept :
     patterns_frequencies(patterns_frequencies),
     plogp_patterns_frequencies(get_plogp(patterns_frequencies)),
     half_min_plogp(get_half_min(plogp_patterns_frequencies)),
@@ -129,21 +129,21 @@ public:
   /**
    * Return true if pattern can be placed in cell index.
    */
-  bool get(unsigned index, unsigned pattern) {
+  bool get(unsigned index, unsigned pattern) const noexcept {
     return data.get(index, pattern);
   }
 
   /**
    * Return true if pattern can be placed in cell (i,j)
    */
-  bool get(unsigned i, unsigned j, unsigned pattern) {
+  bool get(unsigned i, unsigned j, unsigned pattern) const noexcept {
     return get(i * width + j, pattern);
   }
 
   /**
    * Set the value of pattern in cell index.
    */
-  void set(unsigned index, unsigned pattern, bool value) {
+  void set(unsigned index, unsigned pattern, bool value) noexcept {
     bool old_value = data.get(index, pattern);
     // If the value isn't changed, nothing needs to be done.
     if(old_value == value) {
@@ -165,7 +165,7 @@ public:
   /**
    * Set the value of pattern in cell (i,j).
    */
-  void set(unsigned i, unsigned j, unsigned pattern, bool value) {
+  void set(unsigned i, unsigned j, unsigned pattern, bool value) noexcept {
     set(i * width + j, pattern, value);
   }
 
@@ -174,7 +174,7 @@ public:
    * If there is a contradiction in the wave, return -2.
    * If every cell is decided, return -1.
    */
-  int get_min_entropy(minstd_rand& gen) {
+  int get_min_entropy(minstd_rand& gen) const noexcept {
     if(is_impossible) {
       return -2;
     }

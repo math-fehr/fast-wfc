@@ -52,7 +52,7 @@ private:
    * Transform the wave to a valid output (a 2d array of patterns that aren't in contradiction).
    * This function should be used only when all cell of the wave are defined.
    */
-  Array2D<unsigned> wave_to_output() {
+  Array2D<unsigned> wave_to_output() const noexcept {
     Array2D<unsigned> output_patterns(wave.height, wave.width);
     for(unsigned i = 0; i< wave.size; i++) {
       for(unsigned k = 0; k < nb_patterns; k++) {
@@ -71,7 +71,7 @@ public:
    * Basic constructor initializing the algorithm.
    */
   WFC(bool periodic_output, int seed, vector<double> patterns_frequencies,
-      vector<array<vector<unsigned>, 4>> propagator, unsigned wave_height, unsigned wave_width)
+      vector<array<vector<unsigned>, 4>> propagator, unsigned wave_height, unsigned wave_width) noexcept
     : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
       patterns_frequencies(patterns_frequencies), nb_patterns(propagator.size()),
       propagator(wave.height, wave.width, periodic_output, propagator),
@@ -82,7 +82,7 @@ public:
   /**
    * Run the algorithm, and return a result if it succeeded.
    */
-  optional<Array2D<unsigned>> run() {
+  optional<Array2D<unsigned>> run() noexcept {
     while(true) {
 
       // Define the value of an undefined cell.
@@ -112,7 +112,7 @@ public:
   /**
    * Define the value of the cell with lowest entropy.
    */
-  ObserveStatus observe() {
+  ObserveStatus observe() noexcept {
     // Get the cell with lowest entropy.
     int argmin = wave.get_min_entropy(gen);
 
@@ -159,14 +159,14 @@ public:
   /**
    * Propagate the information of the wave.
    */
-  void propagate() {
+  void propagate() noexcept {
     propagator.propagate(wave);
   }
 
   /**
    * Remove pattern from cell (i,j).
    */
-  void remove_wave_pattern(unsigned i, unsigned j, unsigned pattern) {
+  void remove_wave_pattern(unsigned i, unsigned j, unsigned pattern) noexcept {
     if(wave.get(i, j, pattern)) {
       wave.set(i, j, pattern, false);
       propagator.add_to_propagator(i, j, pattern);
