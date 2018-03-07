@@ -1,5 +1,3 @@
-#include <unordered_map>
-#include <vector>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -7,19 +5,21 @@
 #include "array2D.hpp"
 #include "wfc.hpp"
 #include "overlapping_wfc.hpp"
-#include "rapidxml.hpp"
+#include "lib/rapidxml.hpp"
 #include "color.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image.h"
-#include "stb_image_write.h"
+#include "lib/stb_image.h"
+#include "lib/stb_image_write.h"
 
 using namespace std;
 using namespace rapidxml;
 
-
-Array2D<Color> read_file(const string& file_path) noexcept {
+/**
+ * Read an image.
+ */
+Array2D<Color> read_image(const string& file_path) noexcept {
   int width;
   int height;
   int num_components;
@@ -36,10 +36,17 @@ Array2D<Color> read_file(const string& file_path) noexcept {
   return m;
 }
 
-void write_file(const string& file_path, const Array2D<Color>& m) noexcept {
+/**
+ * Write an image.
+ */
+void write_image(const string& file_path, const Array2D<Color>& m) noexcept {
   stbi_write_png(file_path.c_str(), m.width, m.height, 3, (const unsigned char*)m.data.data(),0);
 }
 
+/**
+ * Get an attribute from the xml node.
+ * If the attribute does not exist, then return the default value given.
+ */
 string get_attribute(xml_node<>* node, const string& attribute, const string& default_value) noexcept {
   if(node->first_attribute(attribute.c_str()) != nullptr) {
     return node->first_attribute(attribute.c_str())->value();
@@ -48,35 +55,29 @@ string get_attribute(xml_node<>* node, const string& attribute, const string& de
   }
 }
 
+/**
+ * Read the overlapping wfc problem from the xml node.
+ */
 void read_overlapping_element(xml_node<>* node) noexcept {
   string name = node->first_attribute("name")->value();
-  string N = node->first_attribute("N")->value();
-  string periodic_output = get_attribute(node, "periodic", "False");
-  string periodic_input = get_attribute(node, "periodicInput", "True");
-  string ground = get_attribute(node, "ground", "0");
-  string symmetry = get_attribute(node, "symmetry", "8");
-  string screenshots = get_attribute(node, "screenshots", "2");
-  string width = get_attribute(node, "width", "48");
-  string height = get_attribute(node, "height", "48");
-
-  unsigned N_value = stoi(N);
-  unsigned width_value = stoi(width);
-  unsigned height_value = stoi(height);
-  unsigned symmetry_value = stoi(symmetry);
-  int ground_value = stoi(ground);
-  unsigned screenshots_value = stoi(screenshots);
-  bool periodic_input_value = periodic_input == "True";
-  bool periodic_output_value = periodic_output == "True";
+  unsigned N = stoi(node->first_attribute("N")->value());
+  bool periodic_output = (get_attribute(node, "periodic", "False") == "True");
+  bool periodic_input = (get_attribute(node, "periodicInput", "True") == "True");
+  bool ground = (stoi(get_attribute(node, "ground", "0")) != 0);
+  unsigned symmetry = stoi(get_attribute(node, "symmetry", "8"));
+  unsigned screenshots = stoi(get_attribute(node, "screenshots", "2"));
+  unsigned width = stoi(get_attribute(node, "width", "48"));
+  unsigned height = stoi(get_attribute(node, "height", "48"));
 
   cout << name << " started!" << endl;
-  Array2D<Color> m = read_file("samples/" + name + ".png");
-  OverlappingWFCOptions options = {periodic_input_value, periodic_output_value, height_value, width_value, symmetry_value, ground_value, N_value};
-  for(unsigned i = 0; i < screenshots_value; i++) {
+  Array2D<Color> m = read_image("samples/" + name + ".png");
+  OverlappingWFCOptions options = {periodic_input, periodic_output, height, width, symmetry, ground, N};
+  for(unsigned i = 0; i < screenshots; i++) {
     for(unsigned test = 0; test < 10; test++) {
-      OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots_value + i);
+      OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots + i);
       std::optional<Array2D<Color>> success = wfc.run();
       if(success.has_value()) {
-        write_file("results/" + name + to_string(i) + ".png", *success);
+        write_image("results/" + name + to_string(i) + ".png", *success);
         cout << name << " finished!" << endl;
         break;
       } else {
