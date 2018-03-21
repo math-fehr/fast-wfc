@@ -7,6 +7,7 @@
 #include "overlapping_wfc.hpp"
 #include "lib/rapidxml.hpp"
 #include "color.hpp"
+#include <random>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -74,7 +75,8 @@ void read_overlapping_element(xml_node<>* node) noexcept {
   OverlappingWFCOptions options = {periodic_input, periodic_output, height, width, symmetry, ground, N};
   for(unsigned i = 0; i < screenshots; i++) {
     for(unsigned test = 0; test < 10; test++) {
-      OverlappingWFC<Color> wfc(m, options, 6683 + test * screenshots + i);
+      int seed = random_device()();
+      OverlappingWFC<Color> wfc(m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if(success.has_value()) {
         write_image("results/" + name + to_string(i) + ".png", *success);
