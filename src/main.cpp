@@ -2,47 +2,15 @@
 #include <fstream>
 #include <string>
 #include <chrono>
-#include "array2D.hpp"
 #include "wfc.hpp"
 #include "overlapping_wfc.hpp"
 #include "lib/rapidxml.hpp"
-#include "color.hpp"
 #include <random>
-
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "lib/stb_image.h"
-#include "lib/stb_image_write.h"
+#include "utils/image.hpp"
+#include "utils/array3D.hpp"
 
 using namespace std;
 using namespace rapidxml;
-
-/**
- * Read an image.
- */
-Array2D<Color> read_image(const string& file_path) noexcept {
-  int width;
-  int height;
-  int num_components;
-  unsigned char *data = stbi_load(file_path.c_str(), &width, &height, &num_components, 3);
-  assert(data != nullptr);
-  Array2D<Color> m = Array2D<Color>(height, width);
-  for(unsigned i = 0; i < (unsigned)height; i++) {
-    for(unsigned j = 0; j < (unsigned)width; j++) {
-      unsigned index = 3 * (i * width + j);
-      m.data[i * width + j] = {data[index], data[index + 1], data[index + 2]};
-    }
-  }
-  free(data);
-  return m;
-}
-
-/**
- * Write an image.
- */
-void write_image(const string& file_path, const Array2D<Color>& m) noexcept {
-  stbi_write_png(file_path.c_str(), m.width, m.height, 3, (const unsigned char*)m.data.data(),0);
-}
 
 /**
  * Get an attribute from the xml node.
@@ -79,7 +47,7 @@ void read_overlapping_element(xml_node<>* node) noexcept {
       OverlappingWFC<Color> wfc(m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if(success.has_value()) {
-        write_image("results/" + name + to_string(i) + ".png", *success);
+        write_image_png("results/" + name + to_string(i) + ".png", *success);
         cout << name << " finished!" << endl;
         break;
       } else {

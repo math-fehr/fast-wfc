@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <tuple>
-#include "array2D.hpp"
-#include "array3D.hpp"
+#include "utils/array2D.hpp"
+#include "utils/array3D.hpp"
 #include "wave.hpp"
 #include "direction.hpp"
 

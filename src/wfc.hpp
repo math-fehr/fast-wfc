@@ -5,7 +5,7 @@
 #include <cmath>
 #include <random>
 
-#include "array2D.hpp"
+#include "utils/array2D.hpp"
 #include "wave.hpp"
 #include "propagator.hpp"
 

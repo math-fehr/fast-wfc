@@ -6,7 +6,7 @@
 #include <math.h>
 #include <random>
 #include <iostream>
-#include "array2D.hpp"
+#include "utils/array2D.hpp"
 
 using namespace std;
 
