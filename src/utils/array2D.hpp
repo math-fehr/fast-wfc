@@ -4,7 +4,6 @@
 #include <ostream>
 #include "assert.h"
 #include <iostream>
-using namespace std;
 
 /**
  * Represent a 2D array.
@@ -17,13 +16,13 @@ public:
   /**
    * Height and width of the 2D array.
    */
-  const unsigned height;
-  const unsigned width;
+  unsigned height;
+  unsigned width;
 
   /**
    * The array containing the data of the 2D array.
    */
-  vector<T> data;
+  std::vector<T> data;
 
   /**
    * Build a 2D array given its height and width.
@@ -73,7 +72,7 @@ public:
   }
 
   /**
-   * Return the current 2D array rotated 90° clockwise
+   * Return the current 2D array rotated 90° anticlockwise
    */
   Array2D<T> rotated() const noexcept {
     Array2D<T> result = Array2D<T>(width, height);
@@ -99,10 +98,22 @@ public:
     return sub_array_2d;
   }
 
+
+  /**
+   * Assign the matrix a to the current matrix.
+   */
+  Array2D<T>& operator=(const Array2D<T>& a) noexcept {
+    height = a.height;
+    width = a.width;
+    data = a.data;
+    return *this;
+  }
+
+
   /**
    * Check if two 2D arrays are equals.
    */
-  bool operator==(const Array2D& a) const noexcept {
+  bool operator==(const Array2D<T>& a) const noexcept {
     if(height != a.height || width != a.width) {
       return false;
     }

@@ -179,7 +179,7 @@ public:
       return -2;
     }
 
-    std::uniform_real_distribution<> dis(0,half_min_plogp);
+    std::uniform_real_distribution<> dis(0,abs(half_min_plogp));
 
     // The minimum entropy (plus a small noise)
     double min = numeric_limits<double>::infinity();
@@ -209,7 +209,7 @@ public:
         }
       }
     }
+
     return argmin;
   }
-
 };

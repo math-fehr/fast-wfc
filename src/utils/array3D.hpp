@@ -16,9 +16,9 @@ public:
   /**
    * The dimensions of the 3D array.
    */
-  const unsigned height;
-  const unsigned width;
-  const unsigned depth;
+  unsigned height;
+  unsigned width;
+  unsigned depth;
 
   /**
    * The array containing the data of the 3D array.
@@ -46,7 +46,7 @@ public:
    * i must be lower than height, j lower than width, and k lower than depth.
    */
   const T& get(unsigned i, unsigned j, unsigned k) const noexcept {
-    assert(i < height && j < width << k < depth);
+    assert(i < height && j < width && k < depth);
     return data[i * width * depth + j * depth + k];
   }
 

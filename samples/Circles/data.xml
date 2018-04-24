@@ -16,7 +16,7 @@
 		<neighbor left="b_half" right="b_half 3"/>
 		<neighbor left="b_half" right="b_half 2"/>
 		<neighbor left="b_half" right="b_i"/>
-		<neighbor left="b_half 3" right="b_i 3"/>
+		<neighbor left="b_half 3" right="b_i 1"/>
 		<neighbor left="b_half 1" right="b_i"/>
 		<neighbor left="b_half" right="b_quarter"/>
 		<neighbor left="b_half 1" right="b_quarter"/>
@@ -64,7 +64,7 @@
 		<neighbor left="w_half" right="w_half 3"/>
 		<neighbor left="w_half" right="w_half 2"/>
 		<neighbor left="w_half" right="w_i"/>
-		<neighbor left="w_half 3" right="w_i 3"/>
+		<neighbor left="w_half 3" right="w_i 1"/>
 		<neighbor left="w_half 1" right="w_i"/>
 		<neighbor left="w_half" right="w_quarter"/>
 		<neighbor left="w_half 1" right="w_quarter"/>
