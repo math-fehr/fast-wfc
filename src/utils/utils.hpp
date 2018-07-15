@@ -1,3 +1,6 @@
+#ifndef FAST_WFC_UTILS_UTILS_HPP_
+#define FAST_WFC_UTILS_UTILS_HPP_
+
 #include <string>
 
 /**
@@ -15,3 +18,5 @@ std::string get_dir(const std::string& file_path) {
     return ".";
   }
 }
+
+#endif // FAST_WFC_UTILS_UTILS_HPP_

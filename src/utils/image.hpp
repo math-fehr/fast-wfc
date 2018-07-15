@@ -1,48 +1,18 @@
-#pragma once
-
-#include <functional>
-#include "array2D.hpp"
+#ifndef FAST_WFC_UTILS_IMAGE_HPP_
+#define FAST_WFC_UTILS_IMAGE_HPP_
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../lib/stb_image.h"
 #include "../lib/stb_image_write.h"
 
+#include "array2D.hpp"
+#include "color.hpp"
 
 /**
- * Represent a 24-bit rgb color.
+ * Read an image. Returns nullopt if there was an error.
  */
-struct Color {
-  unsigned char r,g,b;
-
-  bool operator==(const Color& c) const noexcept {
-    return r == c.r && g == c.g && b == c.b;
-  }
-
-  bool operator!=(const Color& c) const noexcept {
-    return !(c == *this);
-  }
-};
-
-
-/**
- * Hash function for color.
- */
-namespace std {
-  template<>
-  class hash<Color> {
-  public:
-    size_t operator()(const Color& c) const {
-      return (size_t)c.r + (size_t)256*(size_t)c.g + (size_t)256*(size_t)256*(size_t)c.b;
-    }
-  };
-}
-
-
-/**
- * Read an image.
- */
-std::optional<Array2D<Color>> read_image(const string& file_path) noexcept {
+std::optional<Array2D<Color>> read_image(const std::string& file_path) noexcept {
   int width;
   int height;
   int num_components;
@@ -58,12 +28,14 @@ std::optional<Array2D<Color>> read_image(const string& file_path) noexcept {
     }
   }
   free(data);
-  return make_optional(m);
+  return m;
 }
 
 /**
  * Write an image in the png format.
  */
-void write_image_png(const string& file_path, const Array2D<Color>& m) noexcept {
+void write_image_png(const std::string& file_path, const Array2D<Color>& m) noexcept {
   stbi_write_png(file_path.c_str(), m.width, m.height, 3, (const unsigned char*)m.data.data(),0);
 }
+
+#endif // FAST_WFC_UTILS_IMAGE_HPP_
