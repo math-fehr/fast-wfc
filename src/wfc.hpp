@@ -41,11 +41,6 @@ private:
   Propagator propagator;
 
   /**
-   * True if the output is periodic.
-   */
-  const bool periodic_output;
-
-  /**
    * Transform the wave to a valid output (a 2d array of patterns that aren't in
    * contradiction). This function should be used only when all cell of the wave
    * are defined.
@@ -70,11 +65,10 @@ public:
       Propagator::PropagatorState propagator, unsigned wave_height,
       unsigned wave_width)
   noexcept
-      : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
+    : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
         patterns_frequencies(patterns_frequencies),
         nb_patterns(propagator.size()),
-        propagator(wave.height, wave.width, periodic_output, propagator),
-        periodic_output(periodic_output) {}
+        propagator(wave.height, wave.width, periodic_output, propagator) {}
 
   /**
    * Run the algorithm, and return a result if it succeeded.
