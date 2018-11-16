@@ -43,7 +43,7 @@ private:
    * The precomputation of min (p * log(p)) / 2.
    * This is used to define the maximum value of the noise.
    */
-  const double half_min_plogp;
+  const double min_abs_half_plogp;
 
   /**
    * The memoisation of important values for the computation of entropy.
@@ -82,12 +82,12 @@ private:
   /**
    * Return min(v) / 2.
    */
-  static double get_half_min(const std::vector<double> &v) noexcept {
-    double half_min = std::numeric_limits<double>::infinity();
+  static double get_min_abs_half(const std::vector<double> &v) noexcept {
+    double min_abs_half = std::numeric_limits<double>::infinity();
     for (unsigned i = 0; i < v.size(); i++) {
-      half_min = std::min(half_min, v[i] / 2.0);
+      min_abs_half = std::min(min_abs_half, std::abs(v[i] / 2.0));
     }
-    return half_min;
+    return min_abs_half;
   }
 
 public:
@@ -105,17 +105,14 @@ public:
        const std::vector<double> &patterns_frequencies) noexcept
       : patterns_frequencies(patterns_frequencies),
         plogp_patterns_frequencies(get_plogp(patterns_frequencies)),
-        half_min_plogp(get_half_min(plogp_patterns_frequencies)),
+        min_abs_half_plogp(get_min_abs_half(plogp_patterns_frequencies)),
         is_impossible(false), nb_patterns(patterns_frequencies.size()),
         data(width * height, nb_patterns, 1), width(width), height(height),
         size(height * width) {
     // Initialize the memoisation of entropy.
     double base_entropy = 0;
     double base_s = 0;
-    double half_min_plogp = std::numeric_limits<double>::infinity();
     for (unsigned i = 0; i < nb_patterns; i++) {
-      half_min_plogp =
-          std::min(half_min_plogp, plogp_patterns_frequencies[i] / 2.0);
       base_entropy += plogp_patterns_frequencies[i];
       base_s += patterns_frequencies[i];
     }
@@ -185,7 +182,7 @@ public:
       return -2;
     }
 
-    std::uniform_real_distribution<> dis(0, abs(half_min_plogp));
+    std::uniform_real_distribution<> dis(0, min_abs_half_plogp);
 
     // The minimum entropy (plus a small noise)
     double min = std::numeric_limits<double>::infinity();

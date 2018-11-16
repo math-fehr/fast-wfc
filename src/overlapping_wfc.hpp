@@ -158,7 +158,7 @@ private:
     std::vector<Array2D<T>> patterns;
 
     // The number of time a pattern is seen in the input image.
-    std::vector<double> patterns_frequency;
+    std::vector<double> patterns_weight;
 
     std::vector<Array2D<T>> symmetries(
         8, Array2D<T>(options.pattern_size, options.pattern_size));
@@ -193,16 +193,16 @@ private:
           // If the pattern already exist, we just have to increase its number
           // of appearance.
           if (!res.second) {
-            patterns_frequency[res.first->second] += 1;
+            patterns_weight[res.first->second] += 1;
           } else {
             patterns.push_back(symmetries[k]);
-            patterns_frequency.push_back(1);
+            patterns_weight.push_back(1);
           }
         }
       }
     }
 
-    return {patterns, patterns_frequency};
+    return {patterns, patterns_weight};
   }
 
   /**

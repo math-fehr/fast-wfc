@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "utils/array2D.hpp"
+#include "utils/utils.hpp"
 #include "propagator.hpp"
 #include "wave.hpp"
 
@@ -21,14 +22,14 @@ private:
   std::minstd_rand gen;
 
   /**
-   * The wave, indicating which patterns can be put in which cell.
-   */
-  Wave wave;
-
-  /**
    * The distribution of the patterns as given in input.
    */
   const std::vector<double> patterns_frequencies;
+
+  /**
+   * The wave, indicating which patterns can be put in which cell.
+   */
+  Wave wave;
 
   /**
    * The number of distinct patterns.
@@ -65,8 +66,8 @@ public:
       Propagator::PropagatorState propagator, unsigned wave_height,
       unsigned wave_width)
   noexcept
-    : gen(seed), wave(wave_height, wave_width, patterns_frequencies),
-        patterns_frequencies(patterns_frequencies),
+    : gen(seed), patterns_frequencies(normalize(patterns_frequencies)),
+        wave(wave_height, wave_width, patterns_frequencies),
         nb_patterns(propagator.size()),
         propagator(wave.height, wave.width, periodic_output, propagator) {}
 
