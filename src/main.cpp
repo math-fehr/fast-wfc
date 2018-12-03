@@ -3,6 +3,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include "time.h"
 
 #include "lib/rapidxml.hpp"
 #include "overlapping_wfc.hpp"
@@ -16,6 +17,20 @@
 
 using namespace rapidxml;
 using namespace std;
+
+/**
+ * Get a random seed.
+ * This function use random_device on linux, but use the C rand function for
+ * other targets. This is because, for instance, windows don't implement
+ * random_device non-deterministically.
+ */
+int get_random_seed() {
+  #ifdef __linux__
+    return random_device()();
+  #else
+    return rand();
+  #endif
+}
 
 /**
  * Read the overlapping wfc problem from the xml node.
@@ -45,7 +60,7 @@ void read_overlapping_instance(xml_node<> *node) {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
   for (unsigned i = 0; i < screenshots; i++) {
     for (unsigned test = 0; test < 10; test++) {
-      int seed = random_device()();
+      int seed = get_random_seed();
       OverlappingWFC<Color> wfc(*m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if (success.has_value()) {
@@ -247,7 +262,7 @@ void read_simpletiled_instance(xml_node<> *node,
   }
 
   for (unsigned test = 0; test < 10; test++) {
-    int seed = random_device()();
+    int seed = get_random_seed();
     TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
                          seed);
     std::optional<Array2D<Color>> success = wfc.run();
@@ -285,6 +300,12 @@ void read_config_file(const string &config_path) noexcept {
 }
 
 int main() {
+
+  // Initialize rand for non-linux targets
+  #ifndef __linux__
+    srand(time(nullptr));
+  #endif
+
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
