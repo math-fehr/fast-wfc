@@ -6,6 +6,7 @@
 #include "wave.hpp"
 #include <tuple>
 #include <vector>
+#include <array>
 
 /**
  * Propagate information about patterns in the wave.
