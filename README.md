@@ -5,15 +5,24 @@ At the time of writing, only the overlapping method has been implemented.
 
 # Requirements
 
-You need a C++-17 compatible compiler.
+You need a C++-17 compatible compiler, and CMake installed.
 
 # Getting started
 
 ```
 git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc/
-make all
-./wfc
+cmake .
+make install
 ```
+
+This will install the library `fastwfc` using CMake, and also compile a example code in `example/`.
+
+```
+cd example/
+./wfc_demo
+```
+
+will execute WFC on the examples defined in `example/samples.xml`, and will put the results in `example/results`.
 
 # Performance
 
@@ -29,7 +38,7 @@ Besides, care has been taken for the code to be cache-friendly and to leave enou
 
 # Third-parties library
 
-The files in `src/lib/` come from:
+The files in `example/src/lib/` come from:
 * RapidXML [https://github.com/dwd/rapidxml](https://github.com/dwd/rapidxml)
 * stb Library [https://github.com/nothings/stb](https://github.com/nothings/stb)
 
