@@ -45,3 +45,5 @@ install(EXPORT FastWFCStaticConfig DESTINATION share/fastwfc/cmake)
 
 export(TARGETS ${PROJECT_NAME} FILE FastWFCConfig.cmake)
 export(TARGETS ${PROJECT_NAME}_static FILE FastWFCStaticConfig.cmake)
+
+add_subdirectory(example)
