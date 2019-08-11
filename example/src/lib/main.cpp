@@ -26,8 +26,7 @@ using namespace std;
  */
 int get_random_seed() {
   #ifdef __linux__
-  return 42;
-  //return random_device()();
+    return random_device()();
   #else
     return rand();
   #endif
@@ -61,7 +60,7 @@ void read_overlapping_instance(xml_node<> *node) {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
   for (unsigned i = 0; i < screenshots; i++) {
     for (unsigned test = 0; test < 10; test++) {
-      int seed = get_random_seed() + test;
+      int seed = get_random_seed();
       OverlappingWFC<Color> wfc(*m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if (success.has_value()) {
