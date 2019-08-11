@@ -9,9 +9,9 @@
 #include "overlapping_wfc.hpp"
 #include "tiling_wfc.hpp"
 #include "utils/array3D.hpp"
-#include "utils/image.hpp"
-#include "utils/rapidxml_utils.hpp"
-#include "utils/utils.hpp"
+#include "image.hpp"
+#include "rapidxml_utils.hpp"
+#include "utils.hpp"
 #include "wfc.hpp"
 #include <unordered_set>
 

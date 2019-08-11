@@ -20,21 +20,4 @@ std::string get_dir(const std::string& file_path) {
   }
 }
 
-/**
- * Normalize a vector so the sum of its elements is equal to 1.0f
- */
-std::vector<double>& normalize(std::vector<double>& v) {
-  double sum_weights = 0.0;
-  for(double weight: v) {
-    sum_weights += weight;
-  }
-
-  double inv_sum_weights = 1.0/sum_weights;
-  for(double& weight: v) {
-    weight *= inv_sum_weights;
-  }
-
-  return v;
-}
-
 #endif // FAST_WFC_UTILS_UTILS_HPP_

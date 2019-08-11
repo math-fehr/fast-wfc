@@ -6,7 +6,7 @@
 #include "external/stb_image.h"
 #include "external/stb_image_write.h"
 
-#include "array2D.hpp"
+#include "utils/array2D.hpp"
 #include "color.hpp"
 
 /**
