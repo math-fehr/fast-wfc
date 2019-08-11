@@ -2,4 +2,21 @@
 wfc
 
 # The results of the algorithm
-results/*
+example/results/*
+
+# The library files
+lib/*
+
+# CMake files
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+*.cmake
+_deps
