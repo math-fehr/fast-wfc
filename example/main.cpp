@@ -5,7 +5,7 @@
 #include <string>
 #include "time.h"
 
-#include "lib/rapidxml.hpp"
+#include "external/rapidxml.hpp"
 #include "overlapping_wfc.hpp"
 #include "tiling_wfc.hpp"
 #include "utils/array3D.hpp"
