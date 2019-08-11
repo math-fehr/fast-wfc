@@ -5,14 +5,14 @@
 #include <string>
 #include "time.h"
 
+#include "fastwfc/overlapping_wfc.hpp"
+#include "fastwfc/tiling_wfc.hpp"
+#include "fastwfc/utils/array3D.hpp"
+#include "fastwfc/wfc.hpp"
 #include "external/rapidxml.hpp"
-#include "overlapping_wfc.hpp"
-#include "tiling_wfc.hpp"
-#include "utils/array3D.hpp"
 #include "image.hpp"
 #include "rapidxml_utils.hpp"
 #include "utils.hpp"
-#include "wfc.hpp"
 #include <unordered_set>
 
 using namespace rapidxml;
@@ -26,7 +26,8 @@ using namespace std;
  */
 int get_random_seed() {
   #ifdef __linux__
-    return random_device()();
+  return 42;
+  //return random_device()();
   #else
     return rand();
   #endif
@@ -60,7 +61,7 @@ void read_overlapping_instance(xml_node<> *node) {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
   for (unsigned i = 0; i < screenshots; i++) {
     for (unsigned test = 0; test < 10; test++) {
-      int seed = get_random_seed();
+      int seed = get_random_seed() + test;
       OverlappingWFC<Color> wfc(*m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if (success.has_value()) {
