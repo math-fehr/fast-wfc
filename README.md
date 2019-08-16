@@ -7,7 +7,7 @@ At the time of writing, only the overlapping method has been implemented.
 
 You need a C++-17 compatible compiler, and CMake installed.
 
-# Getting started
+# Install the library
 
 ```
 git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc/
@@ -15,10 +15,14 @@ cmake .
 make install
 ```
 
-This will install the library `fastwfc` using CMake, and also compile a example code in `example/`.
+will install the library `fastwfc` and `fastwfc_static` using CMake:
+
+# Run the examples
 
 ```
 cd example/
+cmake .
+make
 ./wfc_demo
 ```
 
