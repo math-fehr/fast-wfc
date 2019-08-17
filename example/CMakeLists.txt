@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.9)
 project(wfc_demo LANGUAGES CXX)
 
+make_directory(results)
+
 set(CMAKE_CXX_STANDARD 17)
 set(DEFAULT_BUILD_TYPE "Release")
 
