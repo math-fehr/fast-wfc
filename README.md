@@ -30,7 +30,7 @@ will execute WFC on the examples defined in `example/samples.xml`, and will put 
 
 # Third-parties library
 
-The files in `example/src/lib/` come from:
+The files in `example/src/include/external/` come from:
 * RapidXML [https://github.com/dwd/rapidxml](https://github.com/dwd/rapidxml)
 * stb Library [https://github.com/nothings/stb](https://github.com/nothings/stb)
 
