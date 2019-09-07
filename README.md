@@ -3,6 +3,8 @@
 An implementation of [Wave Function Collapse](https://github.com/mxgmn/WaveFunctionCollapse) with a focus on performance.
 It was called fast-wfc because at the time it introduced optimizations improving the execution time by an order of magnitude.
 
+[Rust bindings](https://github.com/rickyhan/fastwfc-rs)
+
 # Requirements
 
 You need a C++-17 compatible compiler, and CMake installed.
