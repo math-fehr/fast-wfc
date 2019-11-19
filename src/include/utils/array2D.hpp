@@ -96,16 +96,6 @@ public:
   }
 
   /**
-   * Assign the matrix a to the current matrix.
-   */
-  Array2D<T> &operator=(const Array2D<T> &a) noexcept {
-    height = a.height;
-    width = a.width;
-    data = a.data;
-    return *this;
-  }
-
-  /**
    * Check if two 2D arrays are equals.
    */
   bool operator==(const Array2D<T> &a) const noexcept {
