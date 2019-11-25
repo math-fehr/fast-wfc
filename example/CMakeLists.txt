@@ -14,8 +14,6 @@ endif()
 find_library( FASTWFC_LIB
   NAMES
     fastwfc_static
-  HINTS
-    /usr/local/lib64
     )
 
 add_executable(${PROJECT_NAME} src/lib/main.cpp)
