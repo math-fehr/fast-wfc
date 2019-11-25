@@ -14,8 +14,8 @@ public:
   /**
    * Height and width of the 2D array.
    */
-  unsigned height;
-  unsigned width;
+  size_t height;
+  size_t width;
 
   /**
    * The array containing the data of the 2D array.
@@ -26,21 +26,21 @@ public:
    * Build a 2D array given its height and width.
    * All the array elements are initialized to default value.
    */
-  Array2D(unsigned height, unsigned width) noexcept
+  Array2D(size_t height, size_t width) noexcept
       : height(height), width(width), data(width * height) {}
 
   /**
    * Build a 2D array given its height and width.
    * All the array elements are initialized to value.
    */
-  Array2D(unsigned height, unsigned width, T value) noexcept
+  Array2D(size_t height, size_t width, T value) noexcept
       : height(height), width(width), data(width * height, value) {}
 
   /**
    * Return a const reference to the element in the i-th line and j-th column.
    * i must be lower than height and j lower than width.
    */
-  const T &get(unsigned i, unsigned j) const noexcept {
+  const T &get(size_t i, size_t j) const noexcept {
     assert(i < height && j < width);
     return data[j + i * width];
   }
@@ -49,7 +49,7 @@ public:
    * Return a reference to the element in the i-th line and j-th column.
    * i must be lower than height and j lower than width.
    */
-  T &get(unsigned i, unsigned j) noexcept {
+  T &get(size_t i, size_t j) noexcept {
     assert(i < height && j < width);
     return data[j + i * width];
   }
@@ -59,8 +59,8 @@ public:
    */
   Array2D<T> reflected() const noexcept {
     Array2D<T> result = Array2D<T>(width, height);
-    for (unsigned y = 0; y < height; y++) {
-      for (unsigned x = 0; x < width; x++) {
+    for (size_t y = 0; y < height; y++) {
+      for (size_t x = 0; x < width; x++) {
         result.get(y, x) = get(y, width - 1 - x);
       }
     }
@@ -72,8 +72,8 @@ public:
    */
   Array2D<T> rotated() const noexcept {
     Array2D<T> result = Array2D<T>(width, height);
-    for (unsigned y = 0; y < width; y++) {
-      for (unsigned x = 0; x < height; x++) {
+    for (size_t y = 0; y < width; y++) {
+      for (size_t x = 0; x < height; x++) {
         result.get(y, x) = get(x, width - 1 - y);
       }
     }
@@ -84,11 +84,11 @@ public:
    * Return the sub 2D array starting from (y,x) and with size (sub_width,
    * sub_height). The current 2D array is considered toric for this operation.
    */
-  Array2D<T> get_sub_array(unsigned y, unsigned x, unsigned sub_width,
-                           unsigned sub_height) const noexcept {
+  Array2D<T> get_sub_array(size_t y, size_t x, size_t sub_width,
+                           size_t sub_height) const noexcept {
     Array2D<T> sub_array_2d = Array2D<T>(sub_width, sub_height);
-    for (unsigned ki = 0; ki < sub_height; ki++) {
-      for (unsigned kj = 0; kj < sub_width; kj++) {
+    for (size_t ki = 0; ki < sub_height; ki++) {
+      for (size_t kj = 0; kj < sub_width; kj++) {
         sub_array_2d.get(ki, kj) = get((y + ki) % height, (x + kj) % width);
       }
     }
@@ -103,7 +103,7 @@ public:
       return false;
     }
 
-    for (unsigned i = 0; i < data.size(); i++) {
+    for (size_t i = 0; i < data.size(); i++) {
       if (a.data[i] != data[i]) {
         return false;
       }

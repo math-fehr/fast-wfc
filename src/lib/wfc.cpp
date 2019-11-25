@@ -86,7 +86,7 @@ WFC::ObserveStatus WFC::observe() noexcept {
 
     std::uniform_real_distribution<> dis(0, s);
     double random_value = dis(gen);
-    unsigned chosen_value = nb_patterns - 1;
+    size_t chosen_value = nb_patterns - 1;
 
     for (unsigned k = 0; k < nb_patterns; k++) {
       random_value -= wave.get(argmin, k) ? patterns_frequencies[k] : 0;

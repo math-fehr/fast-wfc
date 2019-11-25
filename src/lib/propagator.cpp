@@ -9,8 +9,8 @@ void Propagator::init_compatible() noexcept {
       for (unsigned pattern = 0; pattern < patterns_size; pattern++) {
         for (int direction = 0; direction < 4; direction++) {
           value[direction] =
-            propagator_state[pattern][get_opposite_direction(direction)]
-            .size();
+            static_cast<unsigned>(propagator_state[pattern][get_opposite_direction(direction)]
+                                  .size());
         }
         compatible.get(y, x, pattern) = value;
       }

@@ -55,7 +55,7 @@ private:
   /**
    * The number of distinct patterns.
    */
-  const unsigned nb_patterns;
+  const size_t nb_patterns;
 
   /**
    * The actual wave. data.get(index, pattern) is equal to 0 if the pattern can

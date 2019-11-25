@@ -31,7 +31,7 @@ private:
   /**
    * The number of distinct patterns.
    */
-  const unsigned nb_patterns;
+  const size_t nb_patterns;
 
   /**
    * The propagator, used to propagate the information in the wave.

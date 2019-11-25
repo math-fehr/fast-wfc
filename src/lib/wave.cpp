@@ -50,7 +50,7 @@ Wave::Wave(unsigned height, unsigned width,
   memoisation.sum = std::vector<double>(width * height, base_s);
   memoisation.log_sum = std::vector<double>(width * height, log_base_s);
   memoisation.nb_patterns =
-    std::vector<unsigned>(width * height, nb_patterns);
+    std::vector<unsigned>(width * height, static_cast<unsigned>(nb_patterns));
   memoisation.entropy = std::vector<double>(width * height, entropy_base);
 }
 
