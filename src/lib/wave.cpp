@@ -104,7 +104,7 @@ int Wave::get_min_entropy(std::minstd_rand &gen) const noexcept {
     // We first check if the entropy is less than the minimum.
     // This is important to reduce noise computation (which is not
     // negligible).
-    if (entropy <= min) {
+    if (min >= entropy) {
 
       // Then, we add noise to decide randomly which will be chosen.
       // noise is smaller than the smallest p * log(p), so the minimum entropy
