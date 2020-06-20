@@ -93,8 +93,8 @@ int Wave::get_min_entropy(std::minstd_rand &gen) const noexcept {
 
     // If the cell is decided, we do not compute the entropy (which is equal
     // to 0).
-    double nb_patterns = memoisation.nb_patterns[i];
-    if (nb_patterns == 1) {
+    double nb_patterns_local = memoisation.nb_patterns[i];
+    if (nb_patterns_local == 1) {
       continue;
     }
 
