@@ -207,6 +207,20 @@ private:
    */
   WFC wfc;
 
+public:
+
+  /**
+   * The number of vertical tiles
+   */
+  unsigned height;
+
+  /**
+   * The number of horizontal tiles
+   */
+  unsigned width;
+
+private:
+
   /**
    * Generate mapping from id to oriented tiles and vice versa.
    */
@@ -329,6 +343,14 @@ private:
     return tiling;
   }
 
+  void set_tile(unsigned tile_id, unsigned i, unsigned j) noexcept {
+    for (unsigned p = 0; p < id_to_oriented_tile.size(); p++) {
+      if (tile_id != p) {
+        wfc.remove_wave_pattern(i, j, p);
+      }
+    }
+  }
+
 public:
   /**
    * Construct the TilingWFC class to generate a tiled image.
@@ -346,7 +368,23 @@ public:
         wfc(options.periodic_output, seed, get_tiles_weights(tiles),
             generate_propagator(neighbors, tiles, id_to_oriented_tile,
                                 oriented_tile_ids),
-            height, width) {}
+            height, width),
+        height(height), width(width) {}
+
+  /**
+   * Set the tile at a specific position.
+   * Returns false if the given tile and orientation does not exist,
+   * or if the coordinates are not in the wave
+   */
+  bool set_tile(unsigned tile_id, unsigned orientation, unsigned i, unsigned j) noexcept {
+    if (tile_id >= oriented_tile_ids.size() || orientation >= oriented_tile_ids[tile_id].size() || i >= height || j >= width) {
+      return false;
+    }
+
+    unsigned oriented_tile_id = oriented_tile_ids[tile_id][orientation];
+    set_tile(oriented_tile_id, i, j);
+    return true;
+  }
 
   /**
    * Run the tiling wfc and return the result if the algorithm succeeded

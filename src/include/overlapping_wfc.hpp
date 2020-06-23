@@ -2,6 +2,7 @@
 #define FAST_WFC_OVERLAPPING_WFC_HPP_
 
 #include <vector>
+#include <algorithm>
 #include <unordered_map>
 
 #include "utils/array2D.hpp"
@@ -98,19 +99,15 @@ private:
    * image, on all its width. The pattern cannot be used at any other place in
    * the output image.
    */
-  static void init_ground(WFC &wfc, const Array2D<T> &input,
-                          const std::vector<Array2D<T>> &patterns,
-                          const OverlappingWFCOptions &options) noexcept {
+  void init_ground(WFC &wfc, const Array2D<T> &input,
+                   const std::vector<Array2D<T>> &patterns,
+                   const OverlappingWFCOptions &options) noexcept {
     unsigned ground_pattern_id =
         get_ground_pattern_id(input, patterns, options);
 
     // Place the pattern in the ground.
     for (unsigned j = 0; j < options.get_wave_width(); j++) {
-      for (unsigned p = 0; p < patterns.size(); p++) {
-        if (ground_pattern_id != p) {
-          wfc.remove_wave_pattern(options.get_wave_height() - 1, j, p);
-        }
-      }
+      set_pattern(ground_pattern_id, options.get_wave_height() - 1, j);
     }
 
     // Remove the pattern from the other positions.
@@ -301,6 +298,28 @@ private:
     return output;
   }
 
+  std::optional<unsigned> get_pattern_id(const Array2D<T> &pattern) {
+    unsigned* pattern_id = std::find(patterns.begin(), patterns.end(), pattern);
+
+    if (pattern_id != patterns.end()) {
+      return *pattern_id;
+    }
+
+    return std::nullopt;
+  }
+
+  /**
+   * Set the pattern at a specific position, given its pattern id
+   * pattern_id needs to be a valid pattern id, and i and j needs to be in the wave range
+   */
+  void set_pattern(unsigned pattern_id, unsigned i, unsigned j) noexcept {
+    for (unsigned p = 0; p < patterns.size(); p++) {
+      if (pattern_id != p) {
+        wfc.remove_wave_pattern(i, j, p);
+      }
+    }
+  }
+
 public:
   /**
    * The constructor used by the user.
@@ -308,6 +327,22 @@ public:
   OverlappingWFC(const Array2D<T> &input, const OverlappingWFCOptions &options,
                  int seed) noexcept
       : OverlappingWFC(input, options, seed, get_patterns(input, options)) {}
+
+  /**
+   * Set the pattern at a specific position.
+   * Returns false if the given pattern does not exist, or if the
+   * coordinates are not in the wave
+   */
+  bool set_pattern(const Array2D<T>& pattern, unsigned i, unsigned j) noexcept {
+    auto pattern_id = get_pattern_id(pattern);
+
+    if (pattern_id == std::nullopt || i >= options.get_wave_height() || j >= options.get_wave_width()) {
+      return false;
+    }
+
+    set_pattern(pattern_id, i, j);
+    return true;
+  }
 
   /**
    * Run the WFC algorithm, and return the result if the algorithm succeeded.
