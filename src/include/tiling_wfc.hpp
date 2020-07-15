@@ -17,7 +17,7 @@ enum class Symmetry { X, T, I, L, backslash, P };
  * Return the number of possible distinct orientations for a tile.
  * An orientation is a combination of rotations and reflections.
  */
-unsigned nb_of_possible_orientations(const Symmetry &symmetry) {
+constexpr unsigned nb_of_possible_orientations(const Symmetry &symmetry) {
   switch (symmetry) {
   case Symmetry::X:
     return 1;
