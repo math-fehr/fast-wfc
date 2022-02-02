@@ -20,7 +20,7 @@ private:
   /**
    * The size of the patterns.
    */
-  const size_t patterns_size;
+  const std::size_t patterns_size;
 
   /**
    * propagator[pattern1][direction] contains all the patterns that can

@@ -14,9 +14,9 @@ public:
   /**
    * The dimensions of the 3D array.
    */
-  size_t height;
-  size_t width;
-  size_t depth;
+  std::size_t height;
+  std::size_t width;
+  std::size_t depth;
 
   /**
    * The array containing the data of the 3D array.
@@ -27,7 +27,7 @@ public:
    * Build a 2D array given its height, width and depth.
    * All the arrays elements are initialized to default value.
    */
-  Array3D(size_t height, size_t width, size_t depth) noexcept
+  Array3D(std::size_t height, std::size_t width, std::size_t depth) noexcept
       : height(height), width(width), depth(depth),
         data(width * height * depth) {}
 
@@ -35,7 +35,8 @@ public:
    * Build a 2D array given its height, width and depth.
    * All the arrays elements are initialized to value
    */
-  Array3D(size_t height, size_t width, size_t depth, T value) noexcept
+  Array3D(std::size_t height, std::size_t width, std::size_t depth,
+          T value) noexcept
       : height(height), width(width), depth(depth),
         data(width * height * depth, value) {}
 
@@ -44,7 +45,7 @@ public:
    * k-th depth. i must be lower than height, j lower than width, and k lower
    * than depth.
    */
-  const T &get(size_t i, size_t j, size_t k) const noexcept {
+  const T &get(std::size_t i, std::size_t j, std::size_t k) const noexcept {
     assert(i < height && j < width && k < depth);
     return data[i * width * depth + j * depth + k];
   }
@@ -54,7 +55,7 @@ public:
    * depth. i must be lower than height, j lower than width, and k lower than
    * depth.
    */
-  T &get(size_t i, size_t j, size_t k) noexcept {
+  T &get(std::size_t i, std::size_t j, std::size_t k) noexcept {
     return data[i * width * depth + j * depth + k];
   }
 
@@ -66,7 +67,7 @@ public:
       return false;
     }
 
-    for (size_t i = 0; i < data.size(); i++) {
+    for (std::size_t i = 0; i < data.size(); i++) {
       if (a.data[i] != data[i]) {
         return false;
       }
