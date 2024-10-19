@@ -42,6 +42,6 @@ The image samples come from [https://github.com/mxgmn/WaveFunctionCollapse](http
 
 # Licence 
 
-Copyright (c) 2018-2019 Mathieu Fehr and Nathanaël Courant.
+Copyright (c) 2018-2019 Mathieu Fehr and Nathanaëlle Courant.
 
 MIT License, see `LICENSE` for further details.
